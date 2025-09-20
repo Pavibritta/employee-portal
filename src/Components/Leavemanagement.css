@@ -1,0 +1,45 @@
+.search-input {
+  padding-left: 30px;
+  height: 38px;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: gray;
+}
+
+.dropdown-btn {
+  background-color: #1a237e;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+}
+.custom-swal-popup {
+  border-radius: 15px;
+  padding: 20px;
+  font-family: 'Poppins', sans-serif;
+  max-width: 500px;
+}
+
+.custom-swal-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #333;
+}
+
+.custom-swal-body {
+  text-align: left;
+  font-size: 16px;
+  color: #555;
+}
+
+.swal-content p {
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.dropdown-btn:hover {
+  background-color: #3949ab;
+}

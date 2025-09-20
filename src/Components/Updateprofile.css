@@ -1,0 +1,95 @@
+/* Container */
+
+.update-container {
+  min-height: 100vh;
+  min-width: 100%;
+  background-color: #E3EDF9;
+}
+.mainbar{
+  background-color: #E3EDF9;
+}
+/* Breadcrumbs */
+/* .breadcrums .breadcrumb {
+  background: #fff !important;
+  padding: 0;
+  margin-bottom: 0;
+} */
+.breadcrums .dash a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.breadcrums .dash.active {
+  color: #6c757d;
+}
+.update{
+  background-color: #E3EDF9;
+  width: 100%;
+}
+/* Sidebar */
+.sidebar {
+  background-color: white;
+  margin-top: 30px;
+
+}
+
+/* List Styling */
+.list-container {
+  list-style: none;
+  text-align: center;
+   width: 100%;
+   padding: 10px;
+}
+
+.list-container li {
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #E3EDF9;
+  border-radius: 8px;
+  font-weight: 400;
+  transition: all 0.3s ease;
+  width: 100%;
+  font-size: 1rem;
+}
+
+/* Hover on li */
+.list-container li:hover {
+  background: linear-gradient(to bottom, #085ea1, #03223b);
+   color: #fff;
+}
+
+/* Hover on link */
+
+.list-container li .tab-button:hover {
+   color: #fff;
+}
+/* NavLink as button */
+.tab-button {
+  display: block;
+  width: 100%;
+  padding: 10px 15px;
+  text-align: center;
+  color: #333;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 0.7rem;
+}
+
+/* When li is active-tab (based on NavLink state) */
+.active-tab {
+  background: linear-gradient(to bottom, #085ea1, #03223b) !important;
+}
+
+.active-tab .tab-button {
+  color: #fff !important;
+}
+.sidebarcontainer{
+height: 100%;
+background-color: #fff;
+margin: 10px 0px;
+border-radius: 10px;
+}
+.update{
+  width: 100%;
+}

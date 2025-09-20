@@ -1,0 +1,35 @@
+#payslip {
+  font-family: Arial, sans-serif;
+  border: 1px solid #ddd;
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+  background: white;
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+}
+
+.summary .box {
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 250px;
+}
+
+table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+
+table th, table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+}
+
+.net-pay {
+  margin-top: 20px;
+}

@@ -1,0 +1,49 @@
+.search-input {
+  padding-left: 30px;
+  height: 38px;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: gray;
+}
+
+.dropdown-btn {
+  background-color: #1a237e;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+}
+
+.dropdown-btn:hover {
+  background-color: #3949ab;
+}
+/* Salarymanagement.css */
+
+.card-style {
+  background: linear-gradient(180deg, #003973, #005aa7);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+/* Your CSS file */
+.custom-tabs .nav-link.active {
+  color: #1e87ef !important;   /* Change font color of active tab */
+  font-weight: bold;           /* Optional: make it bold */
+}
+
+.card-style:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive tweaks (optional) */
+@media (max-width: 576px) {
+  .card-style {
+    padding: 1rem;
+  }
+}

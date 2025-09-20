@@ -1,0 +1,68 @@
+.admin-login-container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding: 0;
+  margin: 0;
+}
+
+.main {
+  background: #fff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #777;
+}
+
+.loginbtn {
+  width: 100%;
+  background-color:linear-gradient(to bottom, #085ea1, #03223b)  ;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  transition:  0.3s;
+  text-align: center;
+  height: 50px;
+}
+
+.loginbtn:hover {
+  background-color: #2d4ccc;
+}
+
+.backimg {
+  background-image: url('./images/background.jpg'); /* replace with your actual image */
+  background-size: cover;
+  background-position: center;
+  min-height: 100%;
+  border-radius: 0;
+}
+
+/* ✅ Responsive Adjustments */
+@media screen and (max-width: 768px) {
+  
+
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .loginbtn {
+    font-size: 1rem;
+    padding: 10px;
+  }
+}

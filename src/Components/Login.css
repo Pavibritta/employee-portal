@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+/* Base styles */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f8f9fa;
+}
+
+/* Left Section - Login */
+.login-heading {
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: #2e2e2e;
+  border-bottom: 2px solid transparent;
+  display: inline-block;
+  transition: border-bottom 0.3s ease;
+}
+
+.login-heading:hover {
+  border-bottom: 2px solid #0D99FF;
+}
+
+.custom-btn {
+  width: 154px;
+  height: 43px;
+  border-radius: 25px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  box-shadow: 8px 8px 15px rgba(0, 0, 0, 0.15),
+              -8px -8px 15px rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease-in-out;
+  border: none;
+}
+
+.btn-light.custom-btn {
+  background-color: #fff;
+  color: #2e2e2e;
+}
+
+.btn-light.custom-btn:hover {
+  border: 2px solid #0D99FF;
+}
+
+.btn-primary.custom-btn {
+  background-color: #085EA1;
+}
+
+.btn-primary.custom-btn:hover {
+  background-color: #0b6fc3;
+}
+
+.login-caption {
+  font-size: 0.875rem;
+  color: #7a7a7a;
+  margin-top: 2rem;
+  transition: all 0.3s ease;
+}
+
+.login-caption:hover {
+  border-bottom: 1px solid #0D99FF;
+  display: inline-block;
+}
+
+/* Right Section - Image */
+.login-image {
+  background: url('images/background.jpg') no-repeat center center;
+  background-size: cover;
+  height: 100vh;
+  transition: border 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+.login-image:hover {
+  border: 3px solid #0D99FF;
+}
+.employee{
+  background-color: #085EA1;
+  color: white;
+}
+/* Responsive tweaks */
+@media (max-width: 576px) {
+  .login-heading {
+    font-size: 1.1rem;
+  }
+
+  .custom-btn {
+    width: 140px;
+    height: 40px;
+    font-size: 0.875rem;
+  }
+
+  .login-caption {
+    font-size: 0.8rem;
+  }
+}

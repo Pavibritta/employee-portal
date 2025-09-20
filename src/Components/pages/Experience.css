@@ -1,0 +1,15 @@
+.btn-primary {
+  background: linear-gradient(to right, #095c9d, #032037);
+  border: none;
+}
+
+.btn-outline-primary {
+  font-weight: 500;
+  border-width: 2px;
+  color: #007bff;
+}
+
+.btn-outline-primary:hover {
+  background-color: #007bff;
+  color: white;
+}

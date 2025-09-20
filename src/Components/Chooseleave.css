@@ -1,0 +1,96 @@
+/* ApplyLeave.css */
+
+/* Container */
+.apply-leave-container {
+  background-color: #f0f2f5;
+  min-height: 100vh;
+  padding-top: 50px;
+}
+
+/* Card Styling */
+.apply-leave-container .container {
+  max-width: 600px;
+  background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  position: relative;
+}
+
+/* Heading */
+.apply-leave-container h5 {
+  font-size: 1.2rem;
+  color: #333333;
+  font-weight: 600;
+}
+
+/* Form Inputs */
+.apply-leave-container .form-control,
+.apply-leave-container .form-select {
+  border-radius: 8px;
+  font-size: 0.95rem;
+  padding: 10px 12px;
+}
+
+/* Labels */
+.apply-leave-container .form-label {
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+/* Radio Buttons */
+.apply-leave-container .form-check-input {
+  margin-right: 8px;
+}
+
+.apply-leave-container .form-check-label {
+  margin-right: 20px;
+  font-weight: 500;
+  color: #444;
+}
+
+/* Button */
+.apply-leave-container button.btn {
+  background-color: #007bff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 10px;
+  border: none;
+  border-radius: 30px;
+  transition: 0.3s ease;
+}
+
+.apply-leave-container button.btn:hover {
+  background-color: #0056b3;
+}
+
+/* Close Icon */
+.close-icon {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.close-icon:hover {
+  color: #333;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .apply-leave-container .container {
+    padding: 20px;
+  }
+
+  .apply-leave-container h5 {
+    font-size: 1rem;
+  }
+
+  .close-icon {
+    top: 10px;
+    right: 15px;
+  }
+}

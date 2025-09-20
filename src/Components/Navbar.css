@@ -1,0 +1,65 @@
+
+.logo-img {
+  max-width: 130px;
+  height: auto;
+}
+
+.nav-tabs .nav-item {
+  color: #3770A4;
+  text-decoration: none;
+  font-weight: 500;
+  position: relative;
+  padding-bottom: 4px;
+}
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030; /* higher than content */
+  background: #fff; /* ensure background covers */
+}
+
+.nav-tabs .nav-item.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #0d6efd; /* Bootstrap primary color */
+  border-radius: 2px;
+}
+
+.icon-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.note{
+  background: #3770A4;
+}
+.red-dot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  background-color: red;
+  border-radius: 50%;
+}
+
+.profile-img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.logout-link {
+  color: #0d6efd;
+  font-weight: 500;
+  text-decoration: none;
+}

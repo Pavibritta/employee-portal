@@ -1,0 +1,33 @@
+.notification-modal {
+  background-color: #fff;
+  border-radius: 14px;
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+}
+
+.notification-close-icon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 22px;
+  color: red;
+  cursor: pointer;
+}
+
+.tab-indicator {
+  border: none;
+  height: 4px;
+  width: 120px;
+  background: #007bff;
+  margin-bottom: 20px;
+  border-radius: 2px;
+}
+
+/* Notification card style */
+.notification-card {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+}

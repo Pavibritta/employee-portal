@@ -1,0 +1,64 @@
+.admin-profile-container {
+  padding: 20px;
+}
+
+.add-admin-btn {
+  background-color: #00264d;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  font-weight: 500;
+}
+
+.profile-card {
+  background: linear-gradient(180deg, #0052a3 0%, #001a33 100%);
+  color: white;
+  border-radius: 16px;
+  max-width: 600px;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border: 3px solid white;
+}
+
+.upload-icon {
+  position: absolute;
+  bottom: 0;
+  right: 43%;
+  background: white;
+  color: #0052a3;
+  padding: 4px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid #ccc;
+}
+
+.form-control {
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.save-btn {
+  background-color: white;
+  color: #001a33;
+  padding: 10px 30px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+}
+
+.change-password-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-weight: 500;
+  text-decoration: underline;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

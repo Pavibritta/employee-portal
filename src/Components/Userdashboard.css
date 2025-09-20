@@ -1,0 +1,115 @@
+.dashboard-container {
+  background-color: #f5f7fb;
+  min-height: 100vh;
+}
+
+.dashboard-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.top-card {
+  background: linear-gradient(135deg, #4f93ce, #285b8b);
+  color: #fff;
+}
+
+.profile-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+}
+
+.check-btn {
+  background-color: #ffffff;
+  color: #285b8b;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.check-btn:hover {
+  background-color: #e4e4e4;
+}
+
+.time-text {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.quick-btn {
+  padding: 12px;
+  background-color: #285b8b;
+  border: 1px solid #c7e0f4;
+  border-radius: 10px;
+  font-weight: 500;
+  color: white;
+  transition: 0.3s;
+}
+
+.quick-btn:hover {
+  background-color: #518fc9;
+}
+
+.summary-box {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.summary-card {
+  flex: 1;
+  background-color: #f0f4f9;
+  padding: 20px;
+  border-radius: 10px;
+  font-size: 16px;
+  color: #12375a;
+  text-align: center;
+}
+
+.present {
+  background-color: #acd8b6;
+  height: 100px;
+  color: #12375a;
+}
+
+.absent {
+  background-color: #a7c3db;
+  height: 100px;
+  color: #12375a;
+}
+
+.leave {
+  background-color:#e1c97f;
+  height: 100px;
+  color: #12375a;
+}
+
+.holiday-box {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.holiday-card {
+  background-color: #f8f9fa;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.holiday-name {
+  font-weight: 600;
+  color: #285b8b;
+}
+
+.view-all-btn {
+  background-color: #285b8b;
+  color: white;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+}

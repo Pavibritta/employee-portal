@@ -1,0 +1,45 @@
+/* Admindashboard.css */
+
+.content {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+.admin-dashboard {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 0px;
+}
+
+.dashboard-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+.dashboard-card:hover {
+  transform: translateY(-4px);
+}
+
+.icon {
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.employees-list img,
+.today-leaves img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+}
+
+.badge {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+body{
+  background-color: #fff !important;
+}
