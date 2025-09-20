@@ -15,6 +15,7 @@ const Leavemanagement = () => {
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1);
   const [selectedDay, setSelectedDay] = useState(today.getDate());
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   // Fetch leave data based on selected date
   useEffect(() => {
@@ -120,6 +121,9 @@ const Leavemanagement = () => {
       });
   };
 
+  const filteredData = leaveData.filter(
+    (item) => selectedStatus === "" || item.status === selectedStatus
+  );
   return (
     <div className="p-4 bg-white rounded shadow-sm min-vh-100 mx-sm-3 mt-4">
       <div className="d-flex justify-content-between flex-wrap align-items-center mb-4">
@@ -140,6 +144,20 @@ const Leavemanagement = () => {
             }}
           />
         </div>
+
+        <div className="d-flex gap-3 align-items-center">
+          <label className="fw-semibold">Filter by Status:</label>
+          <select
+            className="form-select"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+          >
+            <option value="">All</option>
+            <option value="approved">Approved</option>
+            <option value="pending">Pending</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
       </div>
 
       <h5 className="mb-3">Ongoing Leave Applications</h5>
@@ -157,14 +175,14 @@ const Leavemanagement = () => {
             </tr>
           </thead>
           <tbody>
-            {leaveData.length === 0 ? (
+            {filteredData.length === 0 ? (
               <tr>
                 <td colSpan="7" className="text-center">
                   No leave applications found.
                 </td>
               </tr>
             ) : (
-              leaveData.map((item) => (
+              filteredData.map((item) => (
                 <tr key={item.id}>
                   <td>
                     {item.first_name} {item.last_name}

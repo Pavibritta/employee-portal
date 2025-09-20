@@ -811,7 +811,12 @@ const Personal = () => {
               name="emergency_contact"
               placeholder="Emergency Contact Number"
               value={employeeData.emergency_contact || ""}
-              onChange={handleChange}
+              maxLength={10} // limit to 10 characters
+              onChange={(e) => {
+                // allow only digits
+                const value = e.target.value.replace(/\D/g, "");
+                handleChange({ target: { name: "emergency_contact", value } });
+              }}
             />
           </Col>
         </Row>
@@ -876,68 +881,69 @@ const Personal = () => {
             />
           </Col>
         </Row> */}
+        {role === "admin" && (
+          <Row className="mb-3">
+            <Col lg={6}>
+              <Form.Label>
+                Department <span className="text-danger">*</span>
+              </Form.Label>
+              <Form.Select
+                name="department_id"
+                value={employeeData.department_id || ""}
+                onChange={handleChange}
+                disabled={isEdit && role !== "admin"}
+              >
+                <option value="">Choose Department</option>
+                {departmentOptions.map((dep) => (
+                  <option key={dep.id} value={dep.id}>
+                    {dep.name}
+                  </option>
+                ))}
+              </Form.Select>
+            </Col>
 
-        <Row className="mb-3">
-          <Col lg={6}>
-            <Form.Label>
-              Department <span className="text-danger">*</span>
-            </Form.Label>
-            <Form.Select
-              name="department_id"
-              value={employeeData.department_id || ""}
-              onChange={handleChange}
-              disabled={isEdit && role !== "admin"}
-            >
-              <option value="">Choose Department</option>
-              {departmentOptions.map((dep) => (
-                <option key={dep.id} value={dep.id}>
-                  {dep.name}
-                </option>
-              ))}
-            </Form.Select>
-          </Col>
-
-          <Col lg={6}>
-            <Form.Label>
-              Designation <span className="text-danger">*</span>
-            </Form.Label>
-            <Form.Select
-              name="designation_id"
-              value={employeeData.designation_id || ""}
-              onChange={handleChange}
-              disabled={isEdit && role !== "admin"}
-            >
-              <option value="">Choose Designation</option>
-              {designationOptions.map((des) => (
-                <option key={des.id} value={des.id}>
-                  {des.name}
-                </option>
-              ))}
-            </Form.Select>
-          </Col>
-        </Row>
-
-        <Row className="mb-3">
-          <Col lg={6}>
-            <Form.Label>
-              Shift <span className="text-danger">*</span>
-            </Form.Label>
-            <Form.Select
-              name="shift_id"
-              value={employeeData.shift_id || ""}
-              onChange={handleChange}
-              disabled={isEdit && role !== "admin"}
-            >
-              <option value="">Choose Shift</option>
-              {shiftOptions.map((shift) => (
-                <option key={shift.id} value={shift.id}>
-                  {shift.name}
-                </option>
-              ))}
-            </Form.Select>
-          </Col>
-        </Row>
-
+            <Col lg={6}>
+              <Form.Label>
+                Designation <span className="text-danger">*</span>
+              </Form.Label>
+              <Form.Select
+                name="designation_id"
+                value={employeeData.designation_id || ""}
+                onChange={handleChange}
+                disabled={isEdit && role !== "admin"}
+              >
+                <option value="">Choose Designation</option>
+                {designationOptions.map((des) => (
+                  <option key={des.id} value={des.id}>
+                    {des.name}
+                  </option>
+                ))}
+              </Form.Select>
+            </Col>
+          </Row>
+        )}
+        {role === "admin" && (
+          <Row className="mb-3">
+            <Col lg={6}>
+              <Form.Label>
+                Shift <span className="text-danger">*</span>
+              </Form.Label>
+              <Form.Select
+                name="shift_id"
+                value={employeeData.shift_id || ""}
+                onChange={handleChange}
+                disabled={isEdit && role !== "admin"}
+              >
+                <option value="">Choose Shift</option>
+                {shiftOptions.map((shift) => (
+                  <option key={shift.id} value={shift.id}>
+                    {shift.name}
+                  </option>
+                ))}
+              </Form.Select>
+            </Col>
+          </Row>
+        )}
         <div className="text-center mt-4">
           <Button
             type="submit"

@@ -428,7 +428,13 @@ const Salarymanagement = () => {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [pdfPreviewUrl, setPdfPreviewUrl] = useState(null);
     const [showPdfPreview, setShowPdfPreview] = useState(false);
-
+const today = new Date();
+    const defaultMonthYear = `${today.getFullYear()}-${String(
+      today.getMonth() + 1
+    ).padStart(2, "0")}`;
+    const [selectedMonthYear, setSelectedMonthYear] =
+      useState(defaultMonthYear);
+    const [year, month] = selectedMonthYear.split("-");
     const months = [
       "January",
       "February",
@@ -541,7 +547,7 @@ const Salarymanagement = () => {
 
         // ✅ empId is now employee_pk_id
         const res = await axios.get(
-          `${BASE_URL}/salary/payslip/generate/${empId}/${selectedYear}/${monthIndex}`,
+          `${BASE_URL}/salary/payslip/generate/${empId}/${year}/${month}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -573,7 +579,7 @@ const Salarymanagement = () => {
           <div class="col-md-6"><strong>Designation:</strong> ${
             slip?.employee.designation || "-"
           }</div>
-          <div class="col-md-6"><strong>Month:</strong> ${selectedMonth} ${selectedYear}</div>
+          <div class="col-md-6"><strong>Month:</strong> ${month} ${year}</div>
         </div>
         <hr />
         <div class="row">
@@ -704,26 +710,23 @@ const Salarymanagement = () => {
         setPdfPreviewUrl(null);
       }
     };
+    
 
     return (
       <div className="p-3 bg-white rounded shadow-sm">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h5 className="fw-bold">Employee Salary Slip</h5>
           <div className="d-flex align-items-center gap-3">
-            <Dropdown onSelect={(month) => setSelectedMonth(month)}>
-              <Dropdown.Toggle variant="outline-secondary" size="sm">
-                {selectedMonth}
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                {months.map((month) => (
-                  <Dropdown.Item key={month} eventKey={month}>
-                    {month}
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown>
+            <label className="fw-semibold mb-0">Filter by Month:</label>
+            <input
+              type="month"
+              className="form-control form-control-sm"
+              style={{ maxWidth: "150px" }}
+              value={selectedMonthYear} // e.g., "2025-09"
+              onChange={(e) => setSelectedMonthYear(e.target.value)}
+            />
 
-            <Form.Control
+            {/* <Form.Control
               type="number"
               min="2000"
               max="2100"
@@ -731,7 +734,7 @@ const Salarymanagement = () => {
               onChange={(e) => setSelectedYear(e.target.value)}
               style={{ width: "90px" }}
               size="sm"
-            />
+            /> */}
 
             <Form.Check
               type="checkbox"

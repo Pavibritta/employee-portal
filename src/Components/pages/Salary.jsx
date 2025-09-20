@@ -444,9 +444,8 @@ const Salary = () => {
                 type="text"
                 className="form-control"
                 name="salary_structure_name"
-                value={salary.salary_structure_name}
-                onChange={handleChange}
-                placeholder="Enter Structure Name"
+                value="Standard Pay"
+                readOnly
               />
             </div>
           </div>
@@ -459,10 +458,14 @@ const Salary = () => {
                 type="date"
                 className="form-control"
                 name="effective_from"
-                value={salary.effective_from}
+                value={
+                  salary.effective_from ||
+                  new Date().toISOString().split("T")[0]
+                }
                 onChange={handleChange}
               />
             </div>
+
             <div className="col-md-6 mb-3">
               <label className="form-label">Effective To</label>
               <input

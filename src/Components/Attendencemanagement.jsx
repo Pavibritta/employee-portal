@@ -14,7 +14,7 @@ const Attendencemanagement = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
-
+  console.log("date", selectedDate);
   const [filteredPresentData, setFilteredPresentData] = useState([]);
 
   const fetchAttendanceData = async (selectedDate) => {
@@ -60,31 +60,30 @@ const Attendencemanagement = () => {
 
   // Fetch Absent Data (Leave Applications)
   // ✅ Fetch Absent Data (Leave Applications)
-useEffect(() => {
-  const fetchAbsentData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
+  useEffect(() => {
+    const fetchAbsentData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
 
-      const [year, month, day] = selectedDate.split("-"); // 👈 also extract day
+        const [year, month, day] = selectedDate.split("-"); // 👈 also extract day
 
-      const res = await axios.get(
-        `${BASE_URL}/leave-applications/month?month=${month}&year=${year}&day=${day}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+        const res = await axios.get(
+          `${BASE_URL}/attendances/${selectedDate}/absent`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        console.log("absent", res.data.absent_employees);
+        setAbsentData(res.data?.absent_employees || []);
+      } catch (err) {
+        console.error("❌ Error fetching absent data:", err);
+        setAbsentData([]);
+      }
+    };
 
-      setAbsentData(res.data?.data?.data || []);
-    } catch (err) {
-      console.error("❌ Error fetching absent data:", err);
-      setAbsentData([]);
-    }
-  };
-
-  fetchAbsentData();
-}, [selectedDate]);
-
+    fetchAbsentData();
+  }, [selectedDate]);
 
   // Filter Present data
   useEffect(() => {
@@ -191,12 +190,9 @@ const AbsentTable = ({ data }) => (
     <Table bordered hover responsive>
       <thead className="table-light text-nowrap">
         <tr>
+          <th>Employee Id</th>
           <th>Name</th>
-          <th>Start Date</th>
-          <th>End Date</th>
-          <th>Total Days</th>
-          <th>Leave Type</th>
-          <th>Reason</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
@@ -209,14 +205,10 @@ const AbsentTable = ({ data }) => (
         ) : (
           data.map((item) => (
             <tr key={item.id}>
-              <td>
-                {item.first_name} {item.last_name}
-              </td>
-              <td>{item.start_date}</td>
-              <td>{item.end_date}</td>
-              <td>{item.total_days}</td>
-              <td>{item.leave_type_name}</td>
-              <td>{item.reason}</td>
+              <td>{item.name}</td>
+              <td>{item.employee_id}</td>
+
+              <td>{item.status}</td>
             </tr>
           ))
         )}
