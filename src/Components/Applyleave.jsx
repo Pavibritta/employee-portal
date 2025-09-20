@@ -15,12 +15,16 @@ const Applyleave = () => {
   const [sick, setSick] = useState(3);
   const [optional, setOptional] = useState(1);
   const [leavesleft, setLeavesleft] = useState(16);
+  const [summaryTotal, setSummaryTotal] = useState(0);
 
   // Leave data and date filter
   const [leaveApplications, setLeaveApplications] = useState([]);
+  const userId = localStorage.getItem("userId");
 
   const today = new Date();
-  const defaultMonthYear = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  const defaultMonthYear = `${today.getFullYear()}-${String(
+    today.getMonth() + 1
+  ).padStart(2, "0")}`;
   const [selectedMonthYear, setSelectedMonthYear] = useState(defaultMonthYear);
 
   const inputRef = useRef(null);
@@ -37,7 +41,7 @@ const Applyleave = () => {
           },
         }
       );
-
+      console.log("leaveapplcation", response);
       if (response.data?.data?.data) {
         setLeaveApplications(response.data.data.data);
       } else {
@@ -78,6 +82,41 @@ const Applyleave = () => {
     });
   };
 
+  const fetchLeaveSummary = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.get(`${BASE_URL}/leave-summary/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("leaveReport", response.data.summary);
+
+      if (response.data.summary) {
+        const summary = response.data.summary;
+
+        setCasual(summary["Casual Leave pending"] || 0);
+        setSick(summary["Sick Leave pending"] || 0);
+        setOptional(summary["Optional Holiday or other leave pending"] || 0);
+        setLeavesleft(summary["Leaves_Left pending"] || 0);
+
+        const total =
+          (summary["total Casual Leave"] || 0) +
+          (summary["total Sick Leave"] || 0) +
+          (summary["total Optional Holiday or other leave"] || 0) +
+          (summary["total Other Leave"] || 0);
+
+        setSummaryTotal(total);
+      }
+    } catch (error) {
+      console.error("Failed to fetch leave summary:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeaveSummary();
+  }, []);
+
   return (
     <>
       <Navbar />
@@ -104,7 +143,10 @@ const Applyleave = () => {
                   <div
                     className="progress-bar"
                     style={{
-                      width: "70%",
+                      width: `${(
+                        (leavesleft / (summaryTotal || 1)) *
+                        100
+                      ).toFixed(0)}%`,
                       background: "#58db2a",
                       borderRadius: "7px",
                     }}
@@ -113,7 +155,9 @@ const Applyleave = () => {
 
                 <div className="d-flex flex-wrap justify-content-around gap-3 mb-4 text-center">
                   <div className="countdiv">
-                    <h3 className="noofdays" style={{ color: "#fb993f" }}>{casual}</h3>
+                    <h3 className="noofdays" style={{ color: "#fb993f" }}>
+                      {casual}
+                    </h3>
                     <h5 className="leavetype">Casual</h5>
                   </div>
                   <div className="countdiv">
@@ -152,7 +196,11 @@ const Applyleave = () => {
                 <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                   <h5 className="cardhead m-0">Leaves Report</h5>
                   <div className="calendar-picker-wrapper position-relative d-flex align-items-center gap-2">
-                    <SlCalender size={20} style={{ cursor: "pointer" }} onClick={handleIconClick} />
+                    <SlCalender
+                      size={20}
+                      style={{ cursor: "pointer" }}
+                      onClick={handleIconClick}
+                    />
                     <input
                       type="month"
                       ref={inputRef}
@@ -174,10 +222,19 @@ const Applyleave = () => {
                     >
                       <div>
                         <strong>
-                          {formatDateWithDay(item.start_date)} to {formatDateWithDay(item.end_date)}
+                          {formatDateWithDay(item.start_date)} to{" "}
+                          {formatDateWithDay(item.end_date)}
                         </strong>
+                        {item.status === "rejected" &&
+                          item.rejection_reason && (
+                            <p className="text-danger mt-2 mb-0 small">
+                              Reason: {item.rejection_reason}
+                            </p>
+                          )}
                         <ul className="mb-0 ps-4">
-                          <li className="text-muted">{item.leave_type?.name}</li>
+                          <li className="text-muted">
+                            {item.leave_type?.name}
+                          </li>
                         </ul>
                       </div>
                       <span
@@ -189,7 +246,8 @@ const Applyleave = () => {
                             : "bg-secondary"
                         } text-white`}
                       >
-                        {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                        {item.status.charAt(0).toUpperCase() +
+                          item.status.slice(1)}
                       </span>
                     </div>
                   ))
