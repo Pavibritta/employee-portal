@@ -1,4 +1,4 @@
-import { useState, useEffect,useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Swal from "sweetalert2";
@@ -20,7 +20,7 @@ const Userdashboard = () => {
   const [monthSummary, setMonthSummary] = useState(null);
   const [employeeData, setEmployeeData] = useState(null);
   const [timerId, setTimerId] = useState(null);
-
+  const [workingHours, setWorkinghours] = useState(0);
   const [hasCheckedOut, setHasCheckedOut] = useState(false);
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -70,7 +70,7 @@ const Userdashboard = () => {
         `${BASE_URL}/attendance?user_id=${employeeId}&month=${month}&year=${year}&page=1&limit=1`,
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
-
+      console.log("attendence", response.data);
       if (response.status === 200) {
         const data = response.data.attendances?.[0];
 
@@ -84,6 +84,7 @@ const Userdashboard = () => {
           // Checked in but not checked out
           setCheck("Check Out");
           setIsTracking(true);
+          setWorkinghours(data.working_hours);
 
           const checkInTime = new Date(`${today}T${data.check_in}`);
           const elapsed = Math.floor(
@@ -164,11 +165,11 @@ const Userdashboard = () => {
         Swal.fire(successMsg, "Operation successful.", "success");
 
         if (apiField === "check-out") {
-          stopTimer();
-          setIsTracking(false);
-          // reset to 0 immediately
-          setCheck("Check In");
-          setHasCheckedOut(true); // mark checkout
+          stopTimer(); // Stop the running timer
+          setIsTracking(false); // Stop tracking
+          setWorkingTime(0); // ✅ Reset the displayed timer to 0
+          setCheck("Check In"); // Change button back to Check In
+          setHasCheckedOut(true); // Mark as checked out
         }
 
         // Refresh latest data from backend
@@ -302,6 +303,7 @@ const Userdashboard = () => {
               >
                 {check}
               </button>
+              <span>Total Working Hours:{workingHours}</span>
             </div>
           </div>
         </div>

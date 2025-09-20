@@ -46,14 +46,16 @@ const Attendence = () => {
             headers: { Authorization: `Bearer ${authToken}` },
           }
         );
-        console.log(res)
+        console.log(res);
         const newData = res.data.attendances || [];
 
         if (newData.length < limit) setHasMore(false);
 
         setAttendanceData((prev) => {
           const existingDates = new Set(prev.map((entry) => entry.date));
-          const filtered = newData.filter((entry) => !existingDates.has(entry.date));
+          const filtered = newData.filter(
+            (entry) => !existingDates.has(entry.date)
+          );
           return [...prev, ...filtered];
         });
       } catch (err) {
@@ -122,7 +124,10 @@ const Attendence = () => {
                   className="shadow-sm mb-3 p-3"
                   style={{ borderLeft: "4px solid green" }}
                 >
-                  <h5 className="text-center text-muted">{entry.date}</h5>
+                  <h5 className="text-center text-muted">
+                    {new Date(entry.date).toDateString()}
+                  </h5>
+
                   <div className="d-flex justify-content-evenly text-muted small gap-5 mt-3">
                     <div>
                       <div>Check-In</div>
