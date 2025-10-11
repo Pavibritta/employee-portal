@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect } from "react";
 import { Form, Row, Col, Button, Spinner } from "react-bootstrap";
 import "./Personal.css";
-import profileDefault from "../images/profileimg1.jpg";
+import profileDefault from "../images/dpimg.jpg";
 import { LuCamera } from "react-icons/lu";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -12,7 +12,7 @@ import { BASE_URL } from "../Api";
 import imageCompression from "browser-image-compression";
 
 const Personal = () => {
-  const { role } = useUser();
+  const { user } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -36,11 +36,11 @@ const Personal = () => {
   }, [employeeData]);
 
   useLayoutEffect(() => {
-    if (mode === "edit" || role === "employee") {
+    if (mode === "edit" || user.role === "employee") {
       setIsEdit(true);
     } else {
       setIsEdit(false);
-      if (role === "admin") {
+      if (user.role === "admin") {
         const emptyData = {
           id: "",
           first_name: "",
@@ -54,6 +54,7 @@ const Personal = () => {
           marital_status: "",
           emergency_contact: "",
           emergency_contact_name: "",
+          emergency_contact_relation: "",
           father_name: "",
           mother_name: "",
           joining_date: "",
@@ -64,11 +65,13 @@ const Personal = () => {
           shift_id: "",
           email: "",
           user_id: "",
+          work_mode: "",
+          status: "",
         };
         setEmployeeData(emptyData);
       }
     }
-  }, [location, role, setEmployeeData, mode]);
+  }, [location, user, setEmployeeData, mode]);
 
   // Handle image upload
   const handleImageUpload = async (e) => {
@@ -117,6 +120,8 @@ const Personal = () => {
       "gender",
       "date_of_birth",
       "email",
+      "work_mode",
+      "status",
     ];
 
     for (const field of requiredFields) {
@@ -157,7 +162,10 @@ const Personal = () => {
     const token = localStorage.getItem("authToken");
     const adminToken = localStorage.getItem("token");
 
-    if ((role === "admin" && !adminToken) || (role === "employee" && !token)) {
+    if (
+      (user.role === "admin" && !adminToken) ||
+      (user.role === "employee" && !token)
+    ) {
       Swal.fire(
         "Error",
         "Missing authentication token. Please log in again.",
@@ -167,7 +175,7 @@ const Personal = () => {
       return;
     }
 
-    if (role === "admin" && !isEdit && !employeeData.user_id) {
+    if (user.role === "admin" && !isEdit && !employeeData.user_id) {
       Swal.fire("Error", "Please select a user for this employee", "error");
       setIsLoading(false);
       return;
@@ -176,18 +184,25 @@ const Personal = () => {
     const payload = {
       ...employeeData,
       user_id:
-        role === "admin"
+        user.role === "admin"
           ? employeeData.user_id
           : localStorage.getItem("userId"),
       salary: Number(employeeData.salary) || 0,
       designation_id: Number(employeeData.designation_id) || 0,
       department_id: Number(employeeData.department_id) || 0,
       shift_id: Number(employeeData.shift_id) || 0,
+      work_mode: ["office", "remote", "hybrid"].includes(employeeData.work_mode)
+        ? employeeData.work_mode
+        : "office",
+      status: ["active", "inactive"].includes(employeeData.status)
+        ? employeeData.status
+        : "active",
+      emergency_contact_relation: employeeData.emergency_contact_relation || "",
     };
 
     try {
       let response;
-      if (role === "admin") {
+      if (user.role === "admin") {
         if (isEdit) {
           // Update existing employee
           response = await axios.put(
@@ -235,7 +250,7 @@ const Personal = () => {
           confirmButtonText: "OK",
         });
         navigate("/layout/employemanagement", { replace: true });
-      } else if (role === "employee") {
+      } else if (user.role === "employee") {
         response = await axios.put(
           `${BASE_URL}/employees/${employeeData.id}`,
           payload,
@@ -272,7 +287,9 @@ const Personal = () => {
           icon: "success",
           confirmButtonText: "OK",
         });
-        navigate(`/updateprofile/employeedetails/${response.data.data.id}`);
+        navigate(
+          `/updateprofile/employeedetails/${response.data.data.id}/personal`
+        );
         window.location.reload();
       }
     } catch (error) {
@@ -305,7 +322,7 @@ const Personal = () => {
     const fetchEmployeeData = async () => {
       const id = localStorage.getItem("Id");
 
-      if (role === "employee") {
+      if (user.role === "employee") {
         const token = localStorage.getItem("authToken");
         const userId = localStorage.getItem("userId");
 
@@ -332,6 +349,7 @@ const Personal = () => {
               marital_status: emp.marital_status || "",
               emergency_contact: emp.emergency_contact || "",
               emergency_contact_name: emp.emergency_contact_name || "",
+              emergency_contact_relation: emp.emergency_contact_relation || "",
               father_name: emp.father_name || "",
               mother_name: emp.mother_name || "",
               joining_date: emp.joining_date || "",
@@ -345,6 +363,8 @@ const Personal = () => {
               email: emp.user?.email || emp.email || "",
               user_id: emp.user_id || "",
               employee_id: emp.employee_id,
+              work_mode: emp.work_mode || "office",
+              status: emp.status || "active",
             };
 
             setEmployeeData(filled);
@@ -369,7 +389,7 @@ const Personal = () => {
             console.error("Error fetching employee:", err);
           }
         }
-      } else if (role === "admin" && isEdit && selectedEmployeeId) {
+      } else if (user.role === "admin" && isEdit && selectedEmployeeId) {
         const token = localStorage.getItem("token");
 
         if (token) {
@@ -398,6 +418,7 @@ const Personal = () => {
               marital_status: emp.marital_status || "",
               emergency_contact: emp.emergency_contact || "",
               emergency_contact_name: emp.emergency_contact_name || "",
+              emergency_contact_relation: emp.emergency_contact_relation || "",
               father_name: emp.father_name || "",
               mother_name: emp.mother_name || "",
               joining_date: emp.joining_date || "",
@@ -410,6 +431,8 @@ const Personal = () => {
               shift_name: emp.shift?.name || "",
               email: emp.user?.email || emp.email || "",
               user_id: emp.user_id || "",
+              work_mode: emp.work_mode || "office",
+              status: emp.status || "active",
             };
 
             setEmployeeData(filled);
@@ -437,10 +460,10 @@ const Personal = () => {
     };
 
     fetchEmployeeData();
-  }, [role, setEmployeeData, isEdit, selectedEmployeeId]);
+  }, [user, setEmployeeData, isEdit, selectedEmployeeId]);
 
   useEffect(() => {
-    if (role === "admin") {
+    if (user.role === "admin") {
       const token = localStorage.getItem("token");
 
       const fetchUsers = async () => {
@@ -461,10 +484,10 @@ const Personal = () => {
 
       if (token) fetchUsers();
     }
-  }, [role]);
+  }, [user]);
 
   const resetForm = () => {
-    if (role === "admin" && isEdit) {
+    if (user.role === "admin" && isEdit) {
       // For admin edit mode, refetch the original data
       const token = localStorage.getItem("token");
 
@@ -489,6 +512,7 @@ const Personal = () => {
               marital_status: emp.marital_status || "",
               emergency_contact: emp.emergency_contact || "",
               emergency_contact_name: emp.emergency_contact_name || "",
+              emergency_contact_relation: emp.emergency_contact_relation || "",
               father_name: emp.father_name || "",
               mother_name: emp.mother_name || "",
               joining_date: emp.joining_date || "",
@@ -510,6 +534,8 @@ const Personal = () => {
               // Email / User
               email: emp.user?.email || emp.email || "",
               user_id: emp.user_id || "",
+              work_mode: emp.work_mode || "office",
+              status: emp.status || "active",
             };
 
             setEmployeeData(filled);
@@ -558,6 +584,7 @@ const Personal = () => {
     { id: 2, name: "Human Resources" },
     { id: 3, name: "Marketing" },
     { id: 4, name: "Operations" },
+    { id: 5, name: "Designer" },
   ];
 
   const designationOptions = [
@@ -571,6 +598,7 @@ const Personal = () => {
     { id: 8, name: "Marketing Executive" },
     { id: 9, name: "Marketing Manager" },
     { id: 10, name: "Operations Executive" },
+    { id: 11, name: "UI/UX Designer" },
   ];
 
   const shiftOptions = [
@@ -592,11 +620,13 @@ const Personal = () => {
       <div className="text-center mb-4">
         <div className="profile-pic-wrapper position-relative d-inline-block">
           <img
-            src={profileImage}
+            src={profileImage || profileDefault}
             alt="Profile"
             className="rounded-circle profile-pic img-fluid"
             style={{ width: "120px", height: "120px", objectFit: "cover" }}
+            onError={(e) => (e.target.src = profileDefault)}
           />
+
           <label
             htmlFor="upload-photo"
             className="upload-icon position-absolute"
@@ -614,7 +644,7 @@ const Personal = () => {
       </div>
 
       <Form onSubmit={handleSubmit}>
-        {role === "admin" && !isEdit && (
+        {user.role === "admin" && !isEdit && (
           <Row className="mb-3">
             <Col lg={12}>
               <Form.Label>
@@ -727,7 +757,7 @@ const Personal = () => {
                 }
               }}
               maxLength={10} // 👈 ensures only 10 digits
-              disabled={isEdit && role !== "admin"}
+              disabled={isEdit && user.role !== "admin"}
               required
             />
           </Col>
@@ -745,18 +775,26 @@ const Personal = () => {
               value={employeeData.email || ""}
               onChange={handleChange}
               required
-              readOnly={isEdit && role !== "admin"}
+              readOnly={isEdit && user.role !== "admin"}
             />
           </Col>
           <Col lg={6}>
             <Form.Label>Blood Group</Form.Label>
-            <Form.Control
-              type="text"
+            <Form.Select
               name="blood_group"
-              placeholder="Blood Group"
               value={employeeData.blood_group || ""}
               onChange={handleChange}
-            />
+            >
+              <option value="">Select Blood Group</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </Form.Select>
           </Col>
         </Row>
 
@@ -823,6 +861,16 @@ const Personal = () => {
 
         <Row className="mb-3">
           <Col lg={6}>
+            <Form.Label>Emergency Contact Relationship</Form.Label>
+            <Form.Control
+              typetype="text"
+              name="emergency_contact_relation"
+              placeholder="Emergency Contact Relationship"
+              value={employeeData.emergency_contact_relation || ""} // ✅ use employeeData
+              onChange={handleChange}
+            />
+          </Col>
+          <Col lg={6}>
             <Form.Label>Father's Name</Form.Label>
             <Form.Control
               type="text"
@@ -832,6 +880,9 @@ const Personal = () => {
               onChange={handleChange}
             />
           </Col>
+        </Row>
+
+        <Row className="mb-3">
           <Col lg={6}>
             <Form.Label>Mother's Name</Form.Label>
             <Form.Control
@@ -842,9 +893,6 @@ const Personal = () => {
               onChange={handleChange}
             />
           </Col>
-        </Row>
-
-        <Row className="mb-3">
           <Col lg={6}>
             <Form.Label>
               Joining Date <span className="text-danger">*</span>
@@ -854,34 +902,12 @@ const Personal = () => {
               name="joining_date"
               value={employeeData.joining_date || ""}
               onChange={handleChange}
-              disabled={isEdit && role !== "admin"}
-            />
-          </Col>
-          <Col lg={6}>
-            <Form.Label>Probation End Date</Form.Label>
-            <Form.Control
-              type="date"
-              name="probation_end_date"
-              value={employeeData.probation_end_date || ""}
-              onChange={handleChange}
+              disabled={isEdit && user.role !== "admin"}
             />
           </Col>
         </Row>
 
-        {/* <Row className="mb-3">
-          <Col lg={6}>
-            <Form.Label>Salary</Form.Label>
-            <Form.Control
-              type="number"
-              name="salary"
-              placeholder="Salary"
-              value={employeeData.salary || ""}
-              onChange={handleChange}
-              disabled={isEdit && role !== "admin"}
-            />
-          </Col>
-        </Row> */}
-        {role === "admin" && (
+        {user.role === "admin" && (
           <Row className="mb-3">
             <Col lg={6}>
               <Form.Label>
@@ -891,7 +917,7 @@ const Personal = () => {
                 name="department_id"
                 value={employeeData.department_id || ""}
                 onChange={handleChange}
-                disabled={isEdit && role !== "admin"}
+                disabled={isEdit && user.role !== "admin"}
               >
                 <option value="">Choose Department</option>
                 {departmentOptions.map((dep) => (
@@ -901,7 +927,37 @@ const Personal = () => {
                 ))}
               </Form.Select>
             </Col>
-
+            <Col lg={6}>
+              <Form.Label>Probation End Date</Form.Label>
+              <Form.Control
+                type="date"
+                name="probation_end_date"
+                value={employeeData.probation_end_date || ""}
+                onChange={handleChange}
+              />
+            </Col>
+          </Row>
+        )}
+        {user.role === "admin" && (
+          <Row className="mb-3">
+            <Col lg={6}>
+              <Form.Label>
+                Shift <span className="text-danger">*</span>
+              </Form.Label>
+              <Form.Select
+                name="shift_id"
+                value={employeeData.shift_id || ""}
+                onChange={handleChange}
+                disabled={isEdit && user.role !== "admin"}
+              >
+                <option value="">Choose Shift</option>
+                {shiftOptions.map((shift) => (
+                  <option key={shift.id} value={shift.id}>
+                    {shift.name}
+                  </option>
+                ))}
+              </Form.Select>
+            </Col>
             <Col lg={6}>
               <Form.Label>
                 Designation <span className="text-danger">*</span>
@@ -910,7 +966,7 @@ const Personal = () => {
                 name="designation_id"
                 value={employeeData.designation_id || ""}
                 onChange={handleChange}
-                disabled={isEdit && role !== "admin"}
+                disabled={isEdit && user.role !== "admin"}
               >
                 <option value="">Choose Designation</option>
                 {designationOptions.map((des) => (
@@ -922,24 +978,31 @@ const Personal = () => {
             </Col>
           </Row>
         )}
-        {role === "admin" && (
+        {user.role === "admin" && (
           <Row className="mb-3">
             <Col lg={6}>
-              <Form.Label>
-                Shift <span className="text-danger">*</span>
-              </Form.Label>
+              <Form.Label>Status</Form.Label>
               <Form.Select
-                name="shift_id"
-                value={employeeData.shift_id || ""}
+                name="status"
+                value={employeeData.status || "active"} // default to active
                 onChange={handleChange}
-                disabled={isEdit && role !== "admin"}
+                disabled={isEdit && user.role !== "admin"} // only admin can change
               >
-                <option value="">Choose Shift</option>
-                {shiftOptions.map((shift) => (
-                  <option key={shift.id} value={shift.id}>
-                    {shift.name}
-                  </option>
-                ))}
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </Form.Select>
+            </Col>
+            <Col lg={6}>
+              <Form.Label>Work Mode</Form.Label>
+              <Form.Select
+                name="work_mode"
+                value={employeeData.work_mode || "On-site"} // default to office
+                onChange={handleChange}
+                disabled={isEdit && user.role !== "admin"} // only admin can change
+              >
+                <option value="office">On-site</option>
+                <option value="remote">Remote</option>
+                <option value="hybrid">Hybrid</option>
               </Form.Select>
             </Col>
           </Row>

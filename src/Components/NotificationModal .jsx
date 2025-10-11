@@ -3,7 +3,8 @@ import axios from "axios";
 import { Modal, Button } from "react-bootstrap";
 import { BASE_URL } from "./Api";
 
-const NotificationModal = ({ show, handleClose }) => {
+const NotificationModal = ({ show, handleClose, announcements }) => {
+  console.log("announcements", announcements);
   const [announcements, setAnnouncements] = useState([]);
   const [visibleCount, setVisibleCount] = useState(3);
   const [loading, setLoading] = useState(false);
@@ -81,9 +82,7 @@ const NotificationModal = ({ show, handleClose }) => {
         )}
 
         {announcements.length === 0 && (
-          <p className="text-center text-muted">
-            No notifications available.
-          </p>
+          <p className="text-center text-muted">No notifications available.</p>
         )}
       </Modal.Body>
       <Modal.Footer>

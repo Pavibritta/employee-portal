@@ -15,6 +15,17 @@
   color: red;
   cursor: pointer;
 }
+/* Holiday.css */
+
+/* Add horizontal margin on mobile screens */
+@media (max-width: 767px) {
+  .custom-mobile-modal  {
+    margin: 1rem;            /* adds space on all sides */
+    max-width: calc(100% - 2rem); 
+    background-color: #000428;
+    font-size: large;/* prevents it from stretching edge to edge */
+  }
+}
 
 /* Submit button styling */
 .submit-button {

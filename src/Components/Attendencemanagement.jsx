@@ -1,20 +1,31 @@
-import React, { useEffect, useState } from "react";
+import React, { createContext, useEffect, useState } from "react";
 import { Tabs, Tab, Table, Spinner } from "react-bootstrap";
 import "./Attendencemanagement.css";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { BASE_URL } from "./Api";
+import { useAttendance } from "./Contexts/AttendanceContext";
+import { useLocation } from "react-router-dom";
 
 const Attendencemanagement = () => {
-  const [key, setKey] = useState("present");
-  const [attendanceData, setAttendanceData] = useState([]);
+  const location = useLocation();
+  const [key, setKey] = useState(location.state?.tab || "present");
+  const {
+    attendanceData,
+    setAttendanceData,
+    absentData,
+    setAbsentData,
+    selectedDate,
+    setSelectedDate,
+  } = useAttendance();
+  // const [attendanceData, setAttendanceData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [absentData, setAbsentData] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  });
-  console.log("date", selectedDate);
+  // const [absentData, setAbsentData] = useState([]);
+  // const [selectedDate, setSelectedDate] = useState(() => {
+  //   const today = new Date();
+  //   return today.toISOString().split("T")[0];
+  // });
+  // console.log("date", selectedDate);
   const [filteredPresentData, setFilteredPresentData] = useState([]);
 
   const fetchAttendanceData = async (selectedDate) => {
@@ -40,14 +51,16 @@ const Attendencemanagement = () => {
 
       const data = Array.isArray(res.data?.data) ? res.data.data : [];
       setAttendanceData(data);
+      // setPresentData(data);
     } catch (error) {
       console.error("❌ API Error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Fetch Failed",
-        text: "Unable to load attendance data.",
-      });
+      // Swal.fire({
+      //   icon: "error",
+      //   title: "Fetch Failed",
+      //   text: "Unable to load attendance data.",
+      // });
       setAttendanceData([]);
+      // setPresentData([])
     } finally {
       setLoading(false);
     }
@@ -74,11 +87,13 @@ const Attendencemanagement = () => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        console.log("absent", res.data.absent_employees);
-        setAbsentData(res.data?.absent_employees || []);
+        console.log("absent", res.data.data);
+        setAbsentData(res.data?.data || []);
+        // setTodayAbsentData(res.data?.absent_employees || []);
       } catch (err) {
         console.error("❌ Error fetching absent data:", err);
         setAbsentData([]);
+        // setTodayAbsentData([])
       }
     };
 
@@ -92,7 +107,7 @@ const Attendencemanagement = () => {
     );
 
     const present = filteredByDate.filter((item) =>
-      ["present", "half_day"].includes(item.status)
+      ["present", "half_day", "short_day"].includes(item.status)
     );
 
     setFilteredPresentData(present);
@@ -147,14 +162,26 @@ const Attendencemanagement = () => {
     </div>
   );
 };
+const formatTime = (timeString) => {
+  if (!timeString) return "—";
+  const [hour, minute, second] = timeString.split(":");
+  const date = new Date();
+  date.setHours(hour, minute, second);
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
 
 const AttendanceTable = ({ data, selectedDate }) => (
   <div className="table-responsive">
     <Table striped bordered hover>
       <thead className="table-light">
         <tr>
-          <th>Name</th>
+          <th>S.NO</th>
           <th>Employee ID</th>
+          <th>Name</th>
           <th>Login Time</th>
           <th>Logout Time</th>
           <th>Total Hours</th>
@@ -165,12 +192,22 @@ const AttendanceTable = ({ data, selectedDate }) => (
         {data.length > 0 ? (
           data.map((item, index) => (
             <tr key={index}>
-              <td>{item.user?.full_name || "N/A"}</td>
+              <td>{index + 1}</td>
               <td>{item.user?.employee_id || "N/A"}</td>
-              <td>{item.check_in || "—"}</td>
-              <td>{item.check_out || "—"}</td>
+              <td>{item.user?.full_name || "N/A"}</td>
+              <td>{formatTime(item.check_in)}</td>
+              <td>{formatTime(item.check_out)}</td>
+
               <td>{item.working_hours || "—"}</td>
-              <td>{item.status || "—"}</td>
+              <td
+                className={
+                  item.status === "half_day"
+                    ? "bg-danger fw-bold text-white"
+                    : ""
+                }
+              >
+                {item.status || "—"}
+              </td>
             </tr>
           ))
         ) : (
@@ -190,6 +227,7 @@ const AbsentTable = ({ data }) => (
     <Table bordered hover responsive>
       <thead className="table-light text-nowrap">
         <tr>
+          <th>S.NO</th>
           <th>Employee Id</th>
           <th>Name</th>
           <th>Status</th>
@@ -203,10 +241,11 @@ const AbsentTable = ({ data }) => (
             </td>
           </tr>
         ) : (
-          data.map((item) => (
+          data.map((item, index) => (
             <tr key={item.id}>
-              <td>{item.name}</td>
+              <td>{index + 1}</td>
               <td>{item.employee_id}</td>
+              <td>{item.name}</td>
 
               <td>{item.status}</td>
             </tr>

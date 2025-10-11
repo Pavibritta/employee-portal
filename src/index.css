@@ -1,0 +1,45 @@
+.policy-page {
+  background: #f8f9fb;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: linear-gradient(180deg, #003973, #005aa7);
+  color: white;
+  min-height: 80vh;
+  transition: all 0.3s ease-in-out;
+}
+
+.sidebar.closed {
+  width: 0 !important;
+  overflow: hidden;
+}
+
+.policy-item {
+  background: transparent;
+  color: #f1f1f1;
+  border: none;
+  padding: 12px 16px;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.policy-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.policy-item.active {
+  background: #ffffff;
+  color: #005aa7;
+  font-weight: 600;
+}
+
+.main-content {
+  background: #f8f9fb;
+}
+
+.policy-details {
+  background: #fff;
+}

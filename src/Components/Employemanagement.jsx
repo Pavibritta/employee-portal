@@ -3,7 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { FaEdit, FaPhoneAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { CiFilter } from "react-icons/ci";
-import dpimg from "../images/profileimg1.jpg";
+import dpimg from "../images/dpimg.jpg";
 import "./Employemanagement.css";
 import axios from "axios";
 import { useEmployeeData } from "./Contexts/EmployeeDataContext";
@@ -11,6 +11,9 @@ import { BASE_URL } from "./Api";
 import { Modal } from "react-bootstrap";
 import Updateprofile from "./Updateprofile";
 import Swal from "sweetalert2";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { MdFirstPage } from "react-icons/md";
+import { MdLastPage } from "react-icons/md";
 
 const Employemanagement = () => {
   const [employees, setEmployees] = useState([]);
@@ -122,21 +125,89 @@ const Employemanagement = () => {
   };
   console.log(employeeData.employee_id);
 
+  const [passwordData, setPasswordData] = useState(false);
+  const [passwordVisibility, setPasswordVisibility] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8; // show 5 employees per page
+
+  // Calculate pagination
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  // 🔎 Apply filters
+  const filteredEmployees = employees.filter((emp) => {
+    const matchesSearch =
+      emp.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.employee_id.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Normalize both sides (lowercase + trim)
+    const empStatus = emp.status ? emp.status.toLowerCase().trim() : "";
+    const filterStatus = statusFilter.toLowerCase().trim();
+
+    const matchesStatus = filterStatus === "all" || empStatus === filterStatus;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // ✅ Pagination after filtering
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentEmployees = filteredEmployees.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
   return (
-    <div className="p-4 bg-light min-vh-100 mt-lg-5">
+    <div className="p-4 bg-light min-vh-100 mt-5">
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="fw-bold">👥 Employee Management</h5>
-        <div className="d-flex gap-2">
-          {/* <button className="btn btn-outline-dark">
-            <CiFilter />
-          </button> */}
-          <button
-            className="btn btn-success px-4 fs-3"
-            onClick={handleAddEmployee}
-          >
-            +
-          </button>
+      <div className="container-fluid">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-3">
+          {/* 🧩 Heading */}
+          <h5 className="fw-bold text-center text-md-start mb-0">
+            👥 Employee Management
+          </h5>
+
+          {/* 🔍 Search + Filter + Button */}
+          <div className="d-flex flex-column flex-sm-row align-items-stretch gap-2 w-100 w-md-auto">
+            {/* 🔎 Search Bar */}
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search by Name or ID..."
+              style={{ minWidth: "180px" }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+
+            {/* ⬇️ Status Filter */}
+            <select
+              className="form-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="All">All Employees</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+
+            {/* ➕ Add Button */}
+            <button
+              className="btn btn-success px-4 fw-bold"
+              onClick={handleAddEmployee}
+            >
+              +
+            </button>
+          </div>
         </div>
       </div>
 
@@ -147,16 +218,19 @@ const Employemanagement = () => {
         </div>
       ) : (
         <div className="row g-3">
-          {employees.map((emp, idx) => (
+          {currentEmployees.map((emp, idx) => (
             <div className="col-md-4 col-lg-3" key={idx}>
               <div className="card employee-card shadow-sm border-0 h-100">
-                <div className="card-body d-flex flex-column align-items-center text-center position-relative">
-                  <div
+                <div
+                  className="card-body d-flex flex-column align-items-center text-center position-relative"
+                  onClick={() => handleEditEmployee(emp)}
+                >
+                  {/* <div
                     className="edit-icon position-absolute top-0 end-0 p-2"
                     onClick={() => handleEditEmployee(emp)}
                   >
                     <FaEdit style={{ cursor: "pointer", color: "#6c757d" }} />
-                  </div>
+                  </div> */}
                   <img
                     src={`${BASE_URL}/employees/${emp.id}/profile-image`}
                     alt="profile"
@@ -167,8 +241,10 @@ const Employemanagement = () => {
                   />
 
                   <h6 className="fw-bold mb-1">
-                    {emp.first_name} {emp.last_name}
+                    {emp.first_name}{" "}
+                    <span className="ms-2">{emp.last_name}</span>
                   </h6>
+
                   <p className="mb-1 small">{emp.role}</p>
                   <span
                     className={`badge ${
@@ -202,6 +278,31 @@ const Employemanagement = () => {
               </div>
             </div>
           ))}
+          {totalPages > 1 && (
+            <div className="d-flex justify-content-center align-items-center mt-3 gap-2">
+              <MdFirstPage
+                size={20} // numeric size in pixels
+                style={{
+                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                  opacity: currentPage === 1 ? 0.5 : 1,
+                }}
+                onClick={() => goToPage(currentPage - 1)}
+              />
+
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+              <MdLastPage
+                size={20} // numeric size in pixels
+                style={{
+                  cursor:
+                    currentPage === totalPages ? "not-allowed" : "pointer",
+                  opacity: currentPage === totalPages ? 0.5 : 1,
+                }}
+                onClick={() => goToPage(currentPage + 1)}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -218,8 +319,7 @@ const Employemanagement = () => {
               <>
                 ✏️ Edit Employee Profile –{" "}
                 <span className="text-primary">
-                  {/** ✅ Show employee name + employee_id */}
-                  {employeeData.first_name || "Unknown"}
+                  {employeeData.first_name || "Unknown"}{" "}
                   {employeeData.last_name}
                 </span>
               </>
@@ -233,20 +333,21 @@ const Employemanagement = () => {
             <Updateprofile />
           ) : (
             // 👉 Create New User form directly here
-            <div>
+            <div className="me-4">
               <h6 className="mb-3">Create New User</h6>
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
 
                   const newUser = {
+                    employee_id: e.target.employee_id.value,
                     first_name: e.target.first_name.value,
                     last_name: e.target.last_name.value,
                     email: e.target.email.value,
                     phone: e.target.phone.value,
-                    role: e.target.role.value, // ✅ just role, not role_id
+                    role: e.target.role.value,
                     password: e.target.password.value,
-                    password_confirmation: e.target.password.value,
+                    password_confirmation: e.target.password_confirmation.value,
                   };
 
                   Swal.fire({
@@ -308,6 +409,16 @@ const Employemanagement = () => {
               >
                 <div className="row g-3">
                   <div className="col-md-6">
+                    <label className="form-label">Employee ID</label>
+                    <input
+                      type="text"
+                      name="employee_id"
+                      className="form-control"
+                      placeholder="Enter Employee ID"
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
                     <label className="form-label">First Name</label>
                     <input
                       type="text"
@@ -364,15 +475,72 @@ const Employemanagement = () => {
                   </div>
                   <div className="col-md-6">
                     <label className="form-label">Password</label>
-                    <input
-                      type="password"
-                      name="password"
-                      className="form-control"
-                      placeholder="Enter password"
-                      pattern=".{8,}" // ✅ at least 8 characters
-                      title="Password must be at least 8 characters long"
-                      required
-                    />
+                    <div className="password-input-wrapper mb-2">
+                      <input
+                        type={passwordVisibility.password ? "text" : "password"}
+                        name="password"
+                        placeholder="Enter Password"
+                        className="form-control"
+                        value={passwordData.password}
+                        onChange={(e) =>
+                          setPasswordData({
+                            ...passwordData,
+                            password: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <span
+                        className="toggle-password-icon"
+                        onClick={() =>
+                          setPasswordVisibility({
+                            ...passwordVisibility,
+                            password: !passwordVisibility.password,
+                          })
+                        }
+                      >
+                        {passwordVisibility.password ? (
+                          <FaEye />
+                        ) : (
+                          <FaEyeSlash />
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label">Confirm Password</label>
+                    <div className="password-input-wrapper mb-2">
+                      <input
+                        type={passwordVisibility.confirm ? "text" : "password"}
+                        name="password_confirmation"
+                        placeholder="Confirm Password"
+                        className="form-control"
+                        value={passwordData.password_confirmation}
+                        onChange={(e) =>
+                          setPasswordData({
+                            ...passwordData,
+                            password_confirmation: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <span
+                        className="toggle-password-icon"
+                        onClick={() =>
+                          setPasswordVisibility({
+                            ...passwordVisibility,
+                            confirm: !passwordVisibility.confirm,
+                          })
+                        }
+                      >
+                        {passwordVisibility.confirm ? (
+                          <FaEye />
+                        ) : (
+                          <FaEyeSlash />
+                        )}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="mt-4 text-end">

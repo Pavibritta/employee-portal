@@ -35,6 +35,21 @@
   font-size: 16px;
   color: #555;
 }
+/* Default (small screens) → no style */
+.custom-td {
+  max-width: none;
+   word-wrap: break-word;
+  white-space: nowrap;
+}
+
+/* Medium and up (≥768px) → apply your style */
+@media (min-width: 768px) {
+  .custom-td {
+    max-width: 200px;
+    word-wrap: break-word;
+    white-space: normal;
+  }
+}
 
 .swal-content p {
   margin-bottom: 6px;

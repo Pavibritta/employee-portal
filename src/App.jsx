@@ -43,6 +43,10 @@ import ProtectedRoute from "./Components/ProtectedRoute";
 import Salary from "./Components/pages/Salary";
 import Address from "./Components/pages/Address";
 import Employeeprofile from "./Components/Employeeprofile";
+import Policy from "./Components/Policy";
+import Employeepolicy from "./Components/Employeepolicy";
+import Holiday from "./Components/Holiday";
+import Leavesummary from "./Components/Leavesummary";
 
 function App() {
   return (
@@ -62,7 +66,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/policy"
+          element={
+            <ProtectedRoute>
+              <Employeepolicy />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/employeeprofile"
           element={
@@ -154,6 +165,8 @@ function App() {
             <Route path="bank" element={<Bank />} />
             <Route path="documents" element={<Documents />} />
             <Route path="salary" element={<Salary />} />
+            <Route path="attendence" element={<Attendence />} />
+            <Route path="leavesummary" element={<Leavesummary/>}/>
           </Route>
           <Route
             path="attendencemanagement"
@@ -163,6 +176,8 @@ function App() {
           <Route path="salarymanagement" element={<Salarymanagement />} />
           <Route path="announcement" element={<Announcement />} />
           <Route path="Adminprofile" element={<Adminprofile />} />
+          <Route path="Policy" element={<Policy />} />
+          <Route path="holiday" element={<Holiday />} />
         </Route>
       </Routes>
     </Router>

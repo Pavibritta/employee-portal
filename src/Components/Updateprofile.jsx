@@ -4,16 +4,16 @@ import "./Updateprofile.css";
 import Navbar from "./Navbar";
 import { useUser } from "./Contexts/UserContext";
 const Updateprofile = () => {
-  const { role } = useUser();
+  const { user } = useUser();
   const id = localStorage.getItem("Id");
   return (
     <div className="fulldiv">
-      {role !== "admin" && <Navbar />}
+      {user.role !== "admin" && <Navbar />}
       {/* {role!=="employee" && <Layout/>} */}
 
       <div className="container-fluid update-container p-4">
         <div className="container mb-3 ">
-          {role !== "admin" && (
+          {user.role !== "admin" && (
             <div className="container mb-3  breadcrumb">
               <nav aria-label="breadcrumb" className="breadcrumb text-center">
                 <ul className="breadcrumb">
@@ -26,7 +26,7 @@ const Updateprofile = () => {
             </div>
           )}
 
-          {role === "admin" && <div className="container mb-3  "></div>}
+          {user.role === "admin" && <div className="container mb-3  "></div>}
 
           <div className="container-fluid update-container w-100">
             <div className="row update mt-4">
@@ -34,7 +34,11 @@ const Updateprofile = () => {
               <div className="col-lg-3 col-md-3 sidebarcontainer">
                 <ul className="list-container">
                   <NavLink
-                    to={role === "admin" ? "personal" : `employeedetails/${id}`}
+                    to={
+                      user.role === "admin"
+                        ? "personal"
+                        : `employeedetails/${id}`
+                    }
                   >
                     {({ isActive }) => (
                       <li className={isActive ? "active-tab" : ""}>
@@ -89,6 +93,28 @@ const Updateprofile = () => {
                       </li>
                     )}
                   </NavLink>
+                  {user.role === "admin" && (
+                    <>
+                      <NavLink to="attendence">
+                        {({ isActive }) => (
+                          <li className={isActive ? "active-tab" : ""}>
+                            <span className="tab-button">
+                              Attendence Details
+                            </span>
+                          </li>
+                        )}
+                      </NavLink>
+                      <NavLink to="leavesummary">
+                        {({ isActive }) => (
+                          <li className={isActive ? "active-tab" : ""}>
+                            <span className="tab-button">
+                              Monthly Attendance and leave summary
+                            </span>
+                          </li>
+                        )}
+                      </NavLink>
+                    </>
+                  )}
                 </ul>
               </div>
 

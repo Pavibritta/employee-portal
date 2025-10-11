@@ -93,7 +93,23 @@ const Applyleave = () => {
       return;
     }
 
-    if (new Date(endDate) < new Date(startDate)) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // ✅ Check if selected dates are in the current month
+    const today = new Date();
+    // Reset time for accurate comparison (00:00:00)
+    today.setHours(0, 0, 0, 0);
+
+    // if (start < today) {
+    //   Swal.fire(
+    //     "Invalid Start Date",
+    //     "You cannot apply for leave in the past.",
+    //     "error"
+    //   );
+    //   return;
+    // }
+    if (end < start) {
       Swal.fire(
         "Invalid Date",
         "End date cannot be earlier than start date.",
@@ -123,8 +139,8 @@ const Applyleave = () => {
     const payload = {
       employee_id: userId,
       email: userEmail,
-      leave_type_id: leaveTypeId, // corresponds to category
-      leave_duration: leaveDurationCode, // corresponds to full/half day
+      leave_type_id: leaveTypeId,
+      leave_duration: leaveDurationCode,
       start_date: startDate,
       end_date: endDate,
       total_days: totalDays,
@@ -145,10 +161,9 @@ const Applyleave = () => {
         text: `Your ${category} (${leaveType}) from ${startDate} to ${endDate} (${totalDays} day(s)) has been submitted.`,
       }).then(() => {
         navigate("/Applyleave");
-        window.location.reload(); // force refresh
+        window.location.reload();
       });
 
-      navigate("/Applyleave");
       // Reset form
       setLeaveType("Full Day");
       setCategory("Casual Leave");

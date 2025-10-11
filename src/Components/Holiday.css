@@ -1,0 +1,24 @@
+/* Holiday.css */
+
+/* Add horizontal margin on mobile screens */
+@media (max-width: 767px) {
+  .custom-mobile-modal .modal-dialog {
+    margin: 1rem;            /* adds space on all sides */
+    max-width: calc(100% - 2rem); /* prevents it from stretching edge to edge */
+  }
+  .holiday-form{
+    max-width: 200px;
+    margin: auto;
+  }
+}
+/* Fullscreen only on mobile */
+@media (max-width: 576px) {
+  .modal-responsive {
+    margin: 1rem;            /* adds space on all sides */
+    max-width: calc(100% - 2rem);
+  }
+  .modal-responsive .modal-content {
+    max-width: 200px;
+    margin: auto;
+  }
+}

@@ -4,6 +4,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { BASE_URL } from "../Api";
 import { useEmployeeData } from "../Contexts/EmployeeDataContext";
+import { Modal, Button, Form } from "react-bootstrap";
 
 const API_URL = `${BASE_URL}/employee-documents`;
 
@@ -19,26 +20,29 @@ const DOCUMENT_FIELDS = [
   { key: "relieving_letter", label: "Relieving Letter" },
   { key: "salary_slip", label: "Salary Slip" },
   { key: "education_certificate", label: "Education Certificate" },
-  { key: "other", label: "Other Documents" },
+  { key: "other", label: "Other Documents" }, // 👈 Special case
 ];
 
 const Documents = () => {
-  const { role } = useUser();
+  const { user } = useUser();
+  const { employeeData } = useEmployeeData();
+
   const [documents, setDocuments] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [selectedType, setSelectedType] = useState("");
+  const [customType, setCustomType] = useState(""); // 👈 new
   const [file, setFile] = useState(null);
-  const { employeeData } = useEmployeeData();
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [showPdf, setShowPdf] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
 
   const userId =
-    role === "admin" ? employeeData?.user_id : localStorage.getItem("userId");
+    user.role === "admin" ? employeeData?.user_id : localStorage.getItem("userId");
 
-  // ✅ Fetch for both employee & admin
+  // ✅ Fetch documents
   useEffect(() => {
     if (!userId) return;
     const token =
-      role === "admin"
+      user.role === "admin"
         ? localStorage.getItem("token")
         : localStorage.getItem("authToken");
 
@@ -46,10 +50,14 @@ const Documents = () => {
       .get(`${BASE_URL}/employee-documents/user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setDocuments(res.data.data || []))
-      .catch((err) => console.error(err));
-  }, [role, userId]);
+      .then((res) => {
+        console.log("doc", res.data); // ✅ log here
+        setDocuments(res.data.data || []);
+      })
+      .catch((err) => console.error("❌ Error fetching documents:", err));
+  }, [user, userId]);
 
+  // ✅ Handle Upload
   const handleUpload = async (e) => {
     e.preventDefault();
 
@@ -58,15 +66,29 @@ const Documents = () => {
       return;
     }
 
-    const token = localStorage.getItem("authToken");
+    // If "other" is chosen, customType is required
+    if (selectedType === "other" && !customType.trim()) {
+      Swal.fire("Error", "Please enter a custom document name", "error");
+      return;
+    }
 
+    const token = localStorage.getItem("authToken");
     const formData = new FormData();
+
     formData.append("user_id", userId);
     formData.append("document_type", selectedType);
-    formData.append(
-      "document_name",
-      DOCUMENT_FIELDS.find((f) => f.key === selectedType)?.label || selectedType
-    );
+
+    // If "other" → use custom document field
+    if (selectedType === "other") {
+      formData.append("custom_document_type", customType.trim());
+    } else {
+      formData.append(
+        "document_name",
+        DOCUMENT_FIELDS.find((f) => f.key === selectedType)?.label ||
+          selectedType
+      );
+    }
+
     formData.append("document_file", file);
 
     try {
@@ -76,34 +98,51 @@ const Documents = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      Swal.fire("Success", res.data.message, "success");
 
-      // ✅ Refresh list
+      Swal.fire("Success", res.data.message, "success");
       setDocuments((prev) => [...prev, res.data.data]);
+
+      // Reset form
       setShowForm(false);
-      setFile(null);
       setSelectedType("");
-      setUploadedFiles((prev) => [...prev, file]);
+      setCustomType(""); // reset custom field
+      setFile(null);
     } catch (error) {
       Swal.fire("Error", "Upload failed", "error");
       console.error(error);
     }
   };
-  const handleDownloadFile = (file) => {
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = file.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+
+  // ✅ Delete document
+  const handleDelete = async (docId) => {
+    const token =
+      user.role === "admin"
+        ? localStorage.getItem("token")
+        : localStorage.getItem("authToken");
+
+    const confirm = await Swal.fire({
+      title: "Are you sure?",
+      text: "This document will be permanently deleted!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        await axios.delete(`${API_URL}/${docId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        Swal.fire("Deleted!", "Document has been deleted.", "success");
+        setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
+      } catch (error) {
+        Swal.fire("Error", "Failed to delete document.", "error");
+      }
+    }
   };
 
   return (
     <div className="container-fluid bg-white p-4 mt-2 rounded shadow-sm">
-      {/* List of Documents */}
       <h5 className="mb-3">Uploaded Documents</h5>
       {documents.length > 0 ? (
         <ul className="list-group">
@@ -112,22 +151,30 @@ const Documents = () => {
               key={doc.id}
               className="list-group-item d-flex justify-content-between align-items-center"
             >
-              {doc.document_name}
+              {doc.document_name || doc.custom_document_type}
               <div>
-                <a
-                  href={`${BASE_URL}/employee-documents/${doc.id}/view`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-sm btn-outline-primary me-2"
+                {doc.view_url ? (
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    className="me-2" // ✅ add right margin
+                    onClick={() => {
+                      setSelectedDoc(doc);
+                      setShowPdf(true);
+                    }}
+                  >
+                    View PDF
+                  </Button>
+                ) : (
+                  <span className="text-muted me-2">No PDF</span> // ✅ space before delete button
+                )}
+
+                <button
+                  className="btn btn-sm btn-outline-danger"
+                  onClick={() => handleDelete(doc.id)}
                 >
-                  View
-                </a>
-                {/* <button
-                  className="btn btn-sm btn-outline-success"
-                  onClick={() => handleDownloadFile(file)}
-                >
-                  Download
-                </button> */}
+                  Delete
+                </button>
               </div>
             </li>
           ))}
@@ -135,8 +182,6 @@ const Documents = () => {
       ) : (
         <p>No documents uploaded yet.</p>
       )}
-
-      {/* Employee Upload Button & Form */}
 
       <div className="text-center mt-4">
         <button
@@ -149,6 +194,7 @@ const Documents = () => {
 
       {showForm && (
         <form onSubmit={handleUpload} className="mt-4">
+          {/* Select type */}
           <div className="mb-3">
             <label className="form-label">Document Type</label>
             <select
@@ -165,6 +211,21 @@ const Documents = () => {
             </select>
           </div>
 
+          {/* Show custom input if "other" is chosen */}
+          {selectedType === "other" && (
+            <div className="mb-3">
+              <label className="form-label">Custom Document Name</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Enter custom document name"
+                value={customType}
+                onChange={(e) => setCustomType(e.target.value)}
+              />
+            </div>
+          )}
+
+          {/* File input */}
           <div className="mb-3">
             <label className="form-label">Upload File</label>
             <input
@@ -191,6 +252,50 @@ const Documents = () => {
           </div>
         </form>
       )}
+
+      <Modal
+        show={showPdf}
+        onHide={() => {
+          setShowPdf(false);
+          setSelectedDoc(null); // reset on close
+        }}
+        size="xl"
+        centered
+        dialogClassName="mx-2 mx-sm-auto"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {selectedDoc?.document_name ||
+              selectedDoc?.custom_document_type ||
+              "Policy Document"}
+          </Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body style={{ height: "80vh" }}>
+          {selectedDoc?.view_url ? (
+            <iframe
+              src={`${BASE_URL}/employee-documents/${selectedDoc.id}/view`} // ✅ full URL
+              title="Document PDF"
+              width="100%"
+              height="100%"
+              style={{ border: "none" }}
+            ></iframe>
+          ) : (
+            <p className="text-center text-muted">No PDF available.</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setShowPdf(false);
+              setSelectedDoc(null);
+            }}
+          >
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

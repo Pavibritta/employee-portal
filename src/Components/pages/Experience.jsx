@@ -9,7 +9,7 @@ import { FaEdit, FaTrash } from "react-icons/fa";
 import { useEmployeeData } from "../Contexts/EmployeeDataContext";
 
 const Experience = () => {
-  const { role } = useUser();
+  const { user } = useUser();
   const { employeeData } = useEmployeeData();
 
   const [experience, setExperience] = useState({
@@ -48,7 +48,7 @@ const Experience = () => {
 
     try {
       let targetUserId =
-        role === "admin" ? employeeData?.user_id : Number(userId);
+        user.role === "admin" ? employeeData?.user_id : Number(userId);
 
       let payload = {
         ...experience,
@@ -60,7 +60,7 @@ const Experience = () => {
       delete payload.is_current;
 
       const headers = {
-        Authorization: `Bearer ${role === "admin" ? adminToken : token}`,
+        Authorization: `Bearer ${user.role === "admin" ? adminToken : token}`,
       };
 
       if (editMode && editId) {
@@ -111,10 +111,10 @@ const Experience = () => {
       let url = "";
       let headers = {};
 
-      if (role === "employee") {
+      if (user.role === "employee") {
         url = `${BASE_URL}/employee-experiences/user/${userId}`;
         headers = { Authorization: `Bearer ${token}` };
-      } else if (role === "admin" && employeeData?.user_id) {
+      } else if (user.role === "admin" && employeeData?.user_id) {
         url = `${BASE_URL}/employee-experiences/user/${employeeData.user_id}`;
         headers = { Authorization: `Bearer ${adminToken}` };
       }
@@ -187,7 +187,7 @@ const Experience = () => {
 
   useEffect(() => {
     fetchExperiences();
-  }, [role, employeeData?.id]);
+  }, [user, employeeData?.id]);
 
   return (
     <div className="container-fluid bg-white p-4 mt-2 rounded shadow-sm">
@@ -241,7 +241,7 @@ const Experience = () => {
                 <option value="">Select Employment Type</option>
                 <option value="full_time">Full-Time</option>
                 <option value="part_time">Part-Time</option>
-                <option value="intern">Intern</option>
+                <option value="internship">Internship</option>
                 <option value="contract">Contract</option>
                 <option value="freelance">Freelance</option>
               </select>

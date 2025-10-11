@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./Adminprofile.css";
 import { FaUser, FaKey } from "react-icons/fa";
 import { LuCamera } from "react-icons/lu";
-import defaultAvatar from "../images/profileimg1.jpg";
+import defaultAvatar from "../images/dpimg.jpg";
 import Swal from "sweetalert2";
 import { BASE_URL } from "./Api";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -15,6 +15,26 @@ const Adminprofile = () => {
     new: false,
     confirm: false,
   });
+  const [admins, setAdmins] = useState([]);
+
+  useEffect(() => {
+    fetch(`${BASE_URL}/admins`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        // Assuming API returns an array of admins in data
+        setAdmins(data.data || data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch admins:", err);
+        Swal.fire("Error!", "Failed to load admin list", "error");
+      });
+  }, []);
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -154,82 +174,13 @@ const Adminprofile = () => {
   };
 
   // 🔸 Add Admin
-  const submitNewAdmin = () => {
-    if (
-      !newAdmin.first_name ||
-      !newAdmin.last_name ||
-      !newAdmin.email ||
-      !newAdmin.password ||
-      !newAdmin.role
-    ) {
-      Swal.fire({
-        title: "Warning!",
-        text: "Please fill all required fields.",
-        icon: "warning",
-        confirmButtonText: "OK",
-      });
-      return;
-    }
-
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You are about to add a new user",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, add it!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        fetch(`${BASE_URL}/users`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            ...newAdmin,
-            role: newAdmin.role.toLowerCase(),
-          }), // normalize role
-        })
-          .then((res) => res.json())
-          .then(() => {
-            Swal.fire({
-              title: "Added!",
-              text: "New user added successfully!",
-              icon: "success",
-              confirmButtonText: "OK",
-            });
-            setNewAdmin({
-              first_name: "",
-              last_name: "",
-              phone: "",
-              role: "",
-              email: "",
-              password: "",
-            });
-            setShowAddAdminForm(false);
-          })
-          .catch((err) => {
-            console.error("Failed to add user:", err);
-            Swal.fire({
-              title: "Error!",
-              text: "Error adding new user",
-              icon: "error",
-              confirmButtonText: "OK",
-            });
-          });
-      }
-    });
-  };
 
   // 🔹 Upload profile image
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !file.type.startsWith("image/")) return;
 
-    // Preview first
+    // Preview (works fine already)
     const reader = new FileReader();
     reader.onloadend = () => setProfileImage(reader.result);
     reader.readAsDataURL(file);
@@ -238,22 +189,30 @@ const Adminprofile = () => {
       const formData = new FormData();
       formData.append("profile_image", file);
 
+      console.log("Uploading file:", file.name, file.type);
+
       const res = await fetch(
         `${BASE_URL}/employees/${userId.id}/upload-profile-image`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${token}`, // 🔑 add token
+            Authorization: `Bearer ${token}`, // don't set Content-Type!
           },
           body: formData,
         }
       );
 
-      const data = await res.json();
+      const text = await res.text(); // ✅ capture raw response
+      console.log("Raw response:", res.status, text);
 
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to upload image");
+      let data;
+      try {
+        data = JSON.parse(text); // if backend returns JSON
+      } catch {
+        data = { message: text }; // fallback for HTML/500 error page
       }
+
+      if (!res.ok) throw new Error(data.message || "Failed to upload image");
 
       Swal.fire("Success!", "Profile image updated!", "success");
     } catch (error) {
@@ -280,7 +239,7 @@ const Adminprofile = () => {
             className="rounded-circle mb-3"
             width="80"
             height="80"
-            onError={(e) => (e.target.src = dpimg)} // 👈 fallback if no profile image
+            onError={(e) => (e.target.src = profileImage)} // 👈 fallback if no profile image
           />
 
           <label htmlFor="upload-photo" className="upload-icon">
@@ -466,73 +425,43 @@ const Adminprofile = () => {
         </div>
       </div>
 
-      {/* 🔹 Add User Form */}
-      {/* <div className={`modal fade ${showAddAdminForm ? 'show d-block' : ''}`} tabIndex="-1" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Add New User</h5>
-              <button type="button" className="btn-close" onClick={() => setShowAddAdminForm(false)}></button>
-            </div>
-            <div className="modal-body">
-              <input
-                type="text"
-                name="first_name"
-                placeholder="First Name"
-                className="form-control mb-2"
-                value={newAdmin.first_name}
-                onChange={e => setNewAdmin({ ...newAdmin, first_name: e.target.value })}
-              />
-              <input
-                type="text"
-                name="last_name"
-                placeholder="Last Name"
-                className="form-control mb-2"
-                value={newAdmin.last_name}
-                onChange={e => setNewAdmin({ ...newAdmin, last_name: e.target.value })}
-              />
-              <input
-                type="text"
-                name="phone"
-                placeholder="Phone Number"
-                className="form-control mb-2"
-                value={newAdmin.phone}
-                onChange={e => setNewAdmin({ ...newAdmin, phone: e.target.value })}
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                className="form-control mb-2"
-                value={newAdmin.email}
-                onChange={e => setNewAdmin({ ...newAdmin, email: e.target.value })}
-              />
-              <select
-                name="role"
-                className="form-control mb-2 role-select"
-                value={newAdmin.role}
-                onChange={e => setNewAdmin({ ...newAdmin, role: e.target.value })}
-              >
-                <option value="">Select Role</option>
-                <option value="admin">Admin</option>
-                <option value="employee">Employee</option>
-              </select>
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                className="form-control mb-2"
-                value={newAdmin.password}
-                onChange={e => setNewAdmin({ ...newAdmin, password: e.target.value })}
-              />
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowAddAdminForm(false)}>Close</button>
-              <button className="btn btn-success" onClick={submitNewAdmin}>Add User</button>
-            </div>
-          </div>
+      <div className="admins-list mt-3 mx-auto p-2">
+        <h6 className="mb-4 fw-bold">Admin Users</h6>
+        <div className="table-responsive-sm">
+          <table className="table table-bordered table-striped table-sm mb-0">
+            <thead className="table-light">
+              <tr>
+                <th>S.NO</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              {admins.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center">
+                    No admins found
+                  </td>
+                </tr>
+              ) : (
+                admins.map((admin, index) => (
+                  <tr key={admin.id || index}>
+                    <td>{index + 1}</td>
+                    <td>{admin.first_name}</td>
+                    <td>{admin.last_name}</td>
+                    <td>{admin.email}</td>
+                    <td>{admin.phone}</td>
+                    <td>{admin.role}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      </div> */}
+      </div>
     </div>
   );
 };

@@ -7,7 +7,7 @@ import { BASE_URL } from "../Api";
 import { useEmployeeData } from "../Contexts/EmployeeDataContext";
 
 const Bank = () => {
-  const { role } = useUser(); // Role from context
+  const { user } = useUser(); // Role from context
   const [bankDetails, setBankDetails] = useState(null);
   const [employeeList, setEmployeeList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +22,7 @@ const Bank = () => {
   // ================== Fetch All Employees (Admin Only) ==================
   useEffect(() => {
     const fetchEmployees = async () => {
-      if (role === "admin" && token) {
+      if (user.role === "admin" && token) {
         try {
           const res = await axios.get(`${BASE_URL}/employees`, {
             headers: { Authorization: `Bearer ${admintoken}` },
@@ -38,7 +38,7 @@ const Bank = () => {
     };
 
     fetchEmployees();
-  }, [role, token]);
+  }, [user, token]);
 
   // ================== Employee Selection (Admin Mode) ==================
   const handleEmployeeSelect = async (e) => {
@@ -75,10 +75,10 @@ const Bank = () => {
       try {
         let url = "";
 
-        if (role === "admin" && mode === "edit" && employeeData?.user_id) {
+        if (user.role === "admin" && mode === "edit" && employeeData?.user_id) {
           // Admin fetching details of selected employee
           url = `${BASE_URL}/bank-details/${employeeData.user_id}`;
-        } else if (role === "employee" && userId) {
+        } else if (user.role === "employee" && userId) {
           // Employee fetching their own bank details
           url = `${BASE_URL}/bank-details/${userId}`;
         } else {
@@ -88,7 +88,7 @@ const Bank = () => {
 
         const res = await axios.get(url, {
           headers: {
-            Authorization: `Bearer ${role === "admin" ? admintoken : token}`,
+            Authorization: `Bearer ${user.role === "admin" ? admintoken : token}`,
           },
         });
 
@@ -99,7 +99,7 @@ const Bank = () => {
         if (error.response?.status === 404) {
           // No bank details yet → still keep id for consistency
           setBankDetails(
-            role === "admin"
+            user.role === "admin"
               ? { user_id: employeeData?.user_id }
               : { user_id: userId?.id }
           );
@@ -112,7 +112,7 @@ const Bank = () => {
     };
 
     fetchBankDetails();
-  }, [role, mode, employeeData, admintoken, token]);
+  }, [user, mode, employeeData, admintoken, token]);
 
   // ================== Handlers ==================
   const handleChange = (e) => {
@@ -164,7 +164,7 @@ const Bank = () => {
     const formData = new FormData();
 
     // If editing, include the id so backend knows it's an update
-    if (role === "admin" && mode === "edit" && bankDetails?.id) {
+    if (user.role === "admin" && mode === "edit" && bankDetails?.id) {
       formData.append("id", bankDetails.id);
     }
 
@@ -186,7 +186,7 @@ const Bank = () => {
     try {
       const res = await axios.post(`${BASE_URL}/bank-details`, formData, {
         headers: {
-          Authorization: `Bearer ${role === "admin" ? admintoken : token}`,
+          Authorization: `Bearer ${user.role === "admin" ? admintoken : token}`,
           "Content-Type": "multipart/form-data",
         },
       });
@@ -215,7 +215,7 @@ const Bank = () => {
   }
 
   // Employee View (Read-Only)
-  if (role === "employee") {
+  if (user.role === "employee") {
     if (!bankDetails) {
       return (
         <div className="p-4">
@@ -268,27 +268,6 @@ const Bank = () => {
       <form onSubmit={handleSubmit}>
         <div className="row g-4">
           {/* Employee Select */}
-          {!(role === "admin" && mode === "edit") && (
-            <div className="col-md-6">
-              <label className="form-label fw-semibold">Select Employee</label>
-              <select
-                className="form-control role-select"
-                name="user_id"
-                value={bankDetails?.user_id || ""}
-                onChange={handleEmployeeSelect}
-                required
-              >
-                <option value="">-- Select Employee --</option>
-                {employeeList.map((emp) => (
-                  <option key={emp.user_id} value={emp.user_id}>
-                    {emp.user_id} - {emp.employee_id} - {emp.first_name}{" "}
-                    {emp.last_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
           {/* Account Holder */}
           <div className="col-md-6">
             <label className="form-label">Account Holder Name</label>

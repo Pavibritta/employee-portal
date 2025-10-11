@@ -1,12 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
-import kitelogo from ".././images/kitelogo.png";
+import kitelogo from "../images/kitelogo.png";
 import { useUser } from "./Contexts/UserContext";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { loginAsAdmin, loginAsEmployee } = useUser(); // Get context functions
+  const { loginUser } = useUser();
 
   return (
     <div className="container-fluid min-vh-100 d-flex flex-column flex-lg-row p-0">
@@ -28,7 +28,12 @@ const Login = () => {
             <button
               className="btn btn-outline-primary custom-btn admin"
               onClick={() => {
-                loginAsAdmin(); // Store in context
+                loginUser({
+                  id: 1,
+                  email: "admin@example.com",
+                  role: "admin",
+                  token: "dummy_admin_token",
+                });
                 navigate("/Admin");
               }}
             >
@@ -38,7 +43,12 @@ const Login = () => {
               className="btn custom-btn text-white"
               style={{ backgroundColor: "#085EA1" }}
               onClick={() => {
-                loginAsEmployee(); // Store in context
+                loginUser({
+                  id: 2,
+                  email: "employee@example.com",
+                  role: "employee",
+                  token: "dummy_employee_token",
+                });
                 navigate("/Employeelogin");
               }}
             >

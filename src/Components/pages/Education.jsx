@@ -29,7 +29,7 @@ const Education = () => {
   const [educationList, setEducationList] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const { role } = useUser();
+  const { user } = useUser();
 
   const userId = localStorage.getItem("userId");
   const token = localStorage.getItem("authToken");
@@ -40,7 +40,7 @@ const Education = () => {
       let targetUserId = null;
       let tokenToUse = null;
 
-      if (role === "admin") {
+      if (user.role === "admin") {
         // ✅ Admin mode
         targetUserId = employeeData?.user_id;
         tokenToUse = localStorage.getItem("token"); // admin token
@@ -72,14 +72,14 @@ const Education = () => {
   };
 
   useEffect(() => {
-    if (role === "admin") {
+    if (user.role === "admin") {
       if (employeeData?.user_id) {
         fetchEducations(); // ✅ fetch only when an employee is selected
       }
     } else {
       fetchEducations(); // ✅ employee mode → always fetch own data
     }
-  }, [employeeData?.user_id, role]);
+  }, [employeeData?.user_id, user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -125,7 +125,7 @@ const Education = () => {
     let targetUserId = null;
     let tokenToUse = null;
 
-    if (role === "admin") {
+    if (user.role === "admin") {
       targetUserId = employeeData?.user_id; // selected employee id
       tokenToUse = localStorage.getItem("token");
     } else {

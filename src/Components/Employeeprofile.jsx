@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal } from "react-bootstrap";
 import { FaUser, FaKey, FaTimes } from "react-icons/fa";
 import { LuCamera } from "react-icons/lu";
-import defaultAvatar from "../images/profileimg1.jpg";
+import defaultAvatar from "../images/dpimg.jpg";
 import Swal from "sweetalert2";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { BASE_URL } from "./Api";
@@ -166,7 +166,7 @@ const Employeeprofile = ({ show, handleClose }) => {
               className="rounded-circle mb-3"
               width="80"
               height="80"
-              onError={(e) => (e.target.src = dpimg)} // 👈 fallback if no profile image
+              onError={(e) => (e.target.src = profileImage)} // 👈 fallback if no profile image
             />
 
             <label htmlFor="upload-photo" className="upload-icon">

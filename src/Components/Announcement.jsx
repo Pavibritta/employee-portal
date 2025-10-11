@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Card, Form, Button, Alert, Spinner } from "react-bootstrap";
 import { FaTelegramPlane, FaEdit, FaExclamationTriangle } from "react-icons/fa";
-import profileImg from "../images/profileimg1.jpg";
+import profileImg from "../images/dpimg.jpg";
 import axios from "axios";
 import Swal from "sweetalert2"; // ✅ SweetAlert2
 import { BASE_URL } from "./Api";
@@ -17,6 +17,7 @@ const Announcement = () => {
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [error, setError] = useState(null);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [announcements, setAnnouncements] = useState([]);
 
   // Fetch current user ID and employees on mount
   useEffect(() => {
@@ -151,7 +152,10 @@ const Announcement = () => {
           "Content-Type": "application/json",
         },
       });
-
+      setAnnouncements((prev) => [
+        { ...res.data.data, seen: false }, // make sure 'seen' property exists
+        ...prev,
+      ]);
       Swal.fire("Success", "Announcement sent successfully!", "success");
       console.log("res", res);
       setForm({ title: "", message: "" });
@@ -171,6 +175,65 @@ const Announcement = () => {
       );
     } finally {
       setSubmitLoading(false);
+    }
+  };
+  const fetchAnnouncements = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.get(`${BASE_URL}/announcements`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const rawData = response.data.data?.data || []; // 👈 pagination fix
+      console.log("annonsments", rawData);
+      const sorted = rawData
+        .slice()
+        .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
+        .map((a) => ({ ...a, seen: a.seen ?? false }));
+
+      setAnnouncements(sorted);
+    } catch (err) {
+      console.error("❌ Error fetching announcements:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
+
+  const handleDeleteAnnouncement = async (id) => {
+    const token = localStorage.getItem("token");
+
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`${BASE_URL}/announcements/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+        Swal.fire("Deleted!", "Announcement has been deleted.", "success");
+
+        // Refresh the list
+        if (currentUserId) {
+          fetchUserAnnouncements(currentUserId, token);
+        }
+      } catch (error) {
+        console.error("Error deleting announcement:", error);
+        Swal.fire(
+          "Error",
+          error.response?.data?.message || "Failed to delete announcement.",
+          "error"
+        );
+      }
     }
   };
 
@@ -232,8 +295,11 @@ const Announcement = () => {
           </Card>
 
           {/* Received Announcements Section */}
+          {/* Received Announcements Section */}
+          {/* Received Announcements Section */}
           <Card className="p-4 mt-4">
             <h6 className="fw-bold mb-3">📨 Received Announcements</h6>
+
             {loadingAnnouncements ? (
               <div className="text-center py-3">
                 <Spinner animation="border" variant="primary" />
@@ -243,18 +309,47 @@ const Announcement = () => {
                 <FaExclamationTriangle className="me-2" />
                 {error}
               </Alert>
-            ) : userAnnouncements.length > 0 ? (
+            ) : announcements.length > 0 ? (
               <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-                {userAnnouncements.map((announcement) => (
+                {announcements.map((announcement) => (
                   <div
                     key={announcement.id}
-                    className="mb-3 p-3 border rounded"
+                    className="mb-3 p-3 border rounded d-flex justify-content-between align-items-start"
                   >
-                    <h6>{announcement.title}</h6>
-                    <p>{announcement.content}</p>
-                    <small className="text-muted">
-                      {new Date(announcement.published_at).toLocaleString()}
-                    </small>
+                    <div>
+                      <h6>{announcement.title}</h6>
+                      <p>{announcement.content}</p>
+
+                      {/* Sender */}
+                      <small className="d-block text-muted mb-1">
+                        <strong>From:</strong> {announcement.user?.first_name}{" "}
+                        {announcement.user?.last_name}
+                      </small>
+
+                      {/* Recipients */}
+                      {announcement.recipients?.length > 0 && (
+                        <small className="d-block text-muted mb-1">
+                          <strong>To:</strong>{" "}
+                          {announcement.recipients
+                            .map((r) => `${r.first_name} ${r.last_name}`)
+                            .join(", ")}
+                        </small>
+                      )}
+
+                      {/* Published date */}
+                      <small className="text-muted">
+                        {new Date(announcement.published_at).toLocaleString()}
+                      </small>
+                    </div>
+
+                    {/* Delete Button */}
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDeleteAnnouncement(announcement.id)}
+                    >
+                      Delete
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -296,13 +391,13 @@ const Announcement = () => {
                   >
                     <img
                       src={`${BASE_URL}/employees/${emp.id}/profile-image`}
-                      roundedCircle
+                      className="me-3 border rounded-circle"
                       width={45}
                       height={45}
-                      className="me-3 border"
                       alt="Employee"
                       onError={(e) => (e.target.src = profileImg)}
                     />
+
                     <div className="ms-3 flex-grow-1">
                       <div className="fw-semibold">
                         {emp.first_name} {emp.last_name}

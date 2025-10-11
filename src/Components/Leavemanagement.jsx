@@ -10,47 +10,55 @@ const Leavemanagement = () => {
 
   const [leaveData, setLeaveData] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // ✅ store full date parts
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1);
   const [selectedDay, setSelectedDay] = useState(today.getDate());
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [viewMode, setViewMode] = useState("day");
 
-  // Fetch leave data based on selected date
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  // ✅ Fetch leave data dynamically based on filter mode
   useEffect(() => {
     const token = localStorage.getItem("token");
+    if (!token) return;
 
     setLoading(true);
-    axios
-      .get(
-        `${BASE_URL}/leave-applications/month?month=${selectedMonth}&year=${selectedYear}&day=${selectedDay}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      .then((res) => {
-        if (res.data?.data?.data) {
-          setLeaveData(res.data.data.data);
-        } else {
-          setLeaveData([]);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching leave data:", err);
-        setLoading(false);
-      });
-  }, [selectedMonth, selectedYear, selectedDay]);
+    let url =
+      viewMode === "month"
+        ? `${BASE_URL}/leave-applications/month?month=${selectedMonth}&year=${selectedYear}`
+        : `${BASE_URL}/leave-applications/month?month=${selectedMonth}&year=${selectedYear}&day=${selectedDay}`;
 
-  // 🔹 Handle status click (no change)
+    axios
+      .get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setLeaveData(res.data?.data?.data || []);
+      })
+      .catch((err) => console.error("Error fetching leave data:", err))
+      .finally(() => setLoading(false));
+  }, [selectedMonth, selectedYear, selectedDay, viewMode]);
+
+  // ✅ Handle Approve / Reject
   const handleStatusClick = (item) => {
     Swal.fire({
       title: `${item.first_name} ${item.last_name}'s Leave Details`,
       html: `
-        <div class="swal-content">
+        <div class="swal-content text-start">
           <p><strong>Start Date:</strong> ${item.start_date}</p>
           <p><strong>End Date:</strong> ${item.end_date}</p>
           <p><strong>Total Days:</strong> ${item.total_days}</p>
@@ -84,23 +92,18 @@ const Leavemanagement = () => {
     });
   };
 
-  // 🔹 Update leave status (unchanged)
   const updateLeaveStatus = (leaveId, status, rejection_reason = null) => {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user"));
     const approved_by = user?.id || 1;
 
     const payload = { status, approved_by };
-    if (status === "rejected" && rejection_reason) {
+    if (status === "rejected" && rejection_reason)
       payload.rejection_reason = rejection_reason;
-    }
 
     axios
       .put(`${BASE_URL}/leave/${leaveId}/process`, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       .then(() => {
         Swal.fire(
@@ -108,7 +111,6 @@ const Leavemanagement = () => {
           `Leave has been marked as ${status}.`,
           "success"
         );
-
         setLeaveData((prev) =>
           prev.map((item) =>
             item.id === leaveId ? { ...item, status, rejection_reason } : item
@@ -124,66 +126,157 @@ const Leavemanagement = () => {
   const filteredData = leaveData.filter(
     (item) => selectedStatus === "" || item.status === selectedStatus
   );
-  return (
-    <div className="p-4 bg-white rounded shadow-sm min-vh-100 mx-sm-3 mt-4">
-      <div className="d-flex justify-content-between flex-wrap align-items-center mb-4">
-        <div className="d-flex gap-5 align-items-center">
-          <label className="fw-semibold">Filter by Date:</label>
-          <input
-            type="date"
-            className="form-control"
-            value={`${selectedYear}-${String(selectedMonth).padStart(
-              2,
-              "0"
-            )}-${String(selectedDay).padStart(2, "0")}`}
-            onChange={(e) => {
-              const [year, month, day] = e.target.value.split("-");
-              setSelectedYear(Number(year));
-              setSelectedMonth(Number(month));
-              setSelectedDay(Number(day));
-            }}
-          />
-        </div>
 
-        <div className="d-flex gap-3 align-items-center">
-          <label className="fw-semibold">Filter by Status:</label>
-          <select
-            className="form-select"
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-          >
-            <option value="">All</option>
-            <option value="approved">Approved</option>
-            <option value="pending">Pending</option>
-            <option value="rejected">Rejected</option>
-          </select>
+  return (
+    <div className="p-3 p-md-4 bg-white rounded shadow-sm min-vh-100 mt-4 mx-2 mx-md-3">
+      {/* 🔹 Filters Section */}
+      <div className="container-fluid mb-4">
+        <div className="card shadow-sm border-0 rounded-3">
+          <div className="card-body p-3 p-md-4">
+            <div className="row g-3 align-items-center justify-content-between">
+              {/* 🔹 Left Section: View Mode & Date Controls */}
+              <div className="col-12 col-lg-8">
+                <div className="d-flex flex-wrap align-items-center gap-3">
+                  <div>
+                    <label className="fw-semibold me-2 text-secondary small">
+                      View Mode:
+                    </label>
+                    <select
+                      className="form-select form-select-sm shadow-sm"
+                      style={{ minWidth: "120px" }}
+                      value={viewMode}
+                      onChange={(e) => setViewMode(e.target.value)}
+                    >
+                      <option value="day">By Date</option>
+                      <option value="month">By Month</option>
+                    </select>
+                  </div>
+
+                  {viewMode === "day" ? (
+                    <div className="d-flex align-items-center gap-2">
+                      <label className="fw-semibold mt-4 text-secondary small">
+                        Date:
+                      </label>
+                      <input
+                        type="date"
+                        className="form-control form-control-sm shadow-sm mt-4"
+                        style={{ minWidth: "160px" }}
+                        value={`${selectedYear}-${String(
+                          selectedMonth
+                        ).padStart(2, "0")}-${String(selectedDay).padStart(
+                          2,
+                          "0"
+                        )}`}
+                        onChange={(e) => {
+                          const [year, month, day] = e.target.value.split("-");
+                          setSelectedYear(Number(year));
+                          setSelectedMonth(Number(month));
+                          setSelectedDay(Number(day));
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="d-flex flex-wrap align-items-center gap-2">
+                      <label className="fw-semibold me-1 text-secondary small">
+                        Month:
+                      </label>
+                      <select
+                        className="form-select form-select-sm shadow-sm"
+                        style={{ minWidth: "120px" }}
+                        value={selectedMonth}
+                        onChange={(e) =>
+                          setSelectedMonth(Number(e.target.value))
+                        }
+                      >
+                        {months.map((month, i) => (
+                          <option key={i + 1} value={i + 1}>
+                            {month}
+                          </option>
+                        ))}
+                      </select>
+
+                      <label className="fw-semibold me-1 text-secondary small">
+                        Year:
+                      </label>
+                      <select
+                        className="form-select form-select-sm shadow-sm"
+                        style={{ minWidth: "100px" }}
+                        value={selectedYear}
+                        onChange={(e) =>
+                          setSelectedYear(Number(e.target.value))
+                        }
+                      >
+                        {[2023, 2024, 2025, 2026].map((year) => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 🔹 Right Section: Status Filter */}
+              <div className="col-12 col-lg-4 text-lg-end">
+                <div className="d-flex flex-wrap justify-content-lg-end align-items-center gap-3">
+                  <label className="fw-semibold me-1 text-secondary small">
+                    Status:
+                  </label>
+                  <select
+                    className="form-select form-select-sm shadow-sm"
+                    style={{ minWidth: "130px" }}
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <h5 className="mb-3">Ongoing Leave Applications</h5>
-      <div className="table-responsive">
-        <Table bordered hover responsive>
-          <thead className="table-light text-nowrap">
+      {/* 🔹 Table Section */}
+      <h5 className="mb-3 text-center text-md-start">Leave Applications</h5>
+      <div
+        className="table-responsive"
+        style={{ maxHeight: "70vh", overflowY: "auto" }}
+      >
+        <Table bordered hover className="align-middle text-center mb-0">
+          <thead className="table-light text-nowrap sticky-top">
             <tr>
-              <th>Name(s)</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Total Days</th>
+              <th>#</th>
+              <th>Name</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Days</th>
               <th>Type</th>
-              <th>Reason(s)</th>
-              <th>Actions</th>
+              <th style={{ minWidth: "250px" }}>Reason</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {filteredData.length === 0 ? (
+            {loading ? (
               <tr>
-                <td colSpan="7" className="text-center">
+                <td colSpan="8" className="text-center py-4">
+                  Loading...
+                </td>
+              </tr>
+            ) : filteredData.length === 0 ? (
+              <tr>
+                <td colSpan="8" className="text-center py-4">
                   No leave applications found.
                 </td>
               </tr>
             ) : (
-              filteredData.map((item) => (
+              filteredData.map((item, index) => (
                 <tr key={item.id}>
+                  <td>{index + 1}</td>
                   <td>
                     {item.first_name} {item.last_name}
                   </td>
@@ -191,7 +284,9 @@ const Leavemanagement = () => {
                   <td>{item.end_date}</td>
                   <td>{item.total_days}</td>
                   <td>{item.leave_type_name}</td>
-                  <td>{item.reason}</td>
+                  <td style={{ minWidth: "250px", wordBreak: "break-word" }}>
+                    {item.reason}
+                  </td>
                   <td>
                     <Badge
                       bg={

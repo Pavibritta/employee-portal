@@ -1,9 +1,20 @@
 import React from "react";
-import { Card, Button } from "react-bootstrap";
+import { Card, Button, Row, Col, Badge } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEmployee } from "../Contexts/EmployeeContext";
-import { FaEdit } from "react-icons/fa";
+import {
+  FaEdit,
+  FaEnvelope,
+  FaPhone,
+  FaTransgender,
+  FaCalendarAlt,
+  FaUserTie,
+  FaBuilding,
+  FaHeartbeat,
+  FaUserFriends,
+} from "react-icons/fa";
 import { BASE_URL } from "../Api";
+import dpimg from "../images/dpimg.jpg";
 
 const EmployeeDetails = () => {
   const { employeeData } = useEmployee();
@@ -33,55 +44,63 @@ const EmployeeDetails = () => {
   };
 
   return (
-    <div className="container mt-1">
-      <Card className="p-4 shadow-sm position-relative">
-        {/* ✏️ Edit Icon - top right */}
+    <div className="container my-4 mt-0">
+      <Card className="shadow-lg border-0 rounded-4 overflow-hidden p-4 position-relative bg-light">
+        {/* ✏️ Edit Button */}
         <Button
-          variant="link"
-          className="position-absolute top-0 end-0 m-3 d-flex align-items-center text-warning fw-semibold"
+          variant="warning"
+          className="position-absolute top-0 end-0 m-3 fw-semibold text-white rounded-3"
           onClick={() =>
             navigate(`/updateprofile/employeedetails/${employee.id}/personal`)
           }
-          style={{
-            fontSize: "0.95rem",
-            textDecoration: "none",
-            gap: "5px",
-          }}
         >
-          <FaEdit size={18} />
+          <FaEdit className="me-2" />
           Edit
         </Button>
 
-        {/* Profile Image */}
+        {/* Profile Header */}
         <div className="text-center mb-4">
           <img
             src={`${BASE_URL}/employees/${id}/profile-image`}
-            alt="profile"
-            className="rounded-circle mb-3"
-            width="80"
-            height="80"
-            onError={(e) => (e.target.src = dpimg)} // 👈 fallback if no profile image
+            alt="Profile"
+            className="rounded-circle shadow-sm border border-3 border-white"
+            width="110"
+            height="110"
+            onError={(e) => (e.target.src = dpimg)}
           />
-
-          <h3 className="mt-2 mb-0 text-primary">
+          <h4 className="mt-3 text-primary fw-bold mb-0">
             {employee.first_name} {employee.last_name}
-          </h3>
-          <p className="text-primary">{employee.email}</p>
+          </h4>
+          <p className="text-muted mb-1">
+            {employee.designation_name || "Employee"}
+          </p>
+          <Badge bg="primary" className="px-3 py-2">
+            {employee.department_name || employee.department?.name || "N/A"}
+          </Badge>
         </div>
 
         <hr />
 
-        {/* Employee Info */}
-        <div className="row">
-          <div className="col-md-6">
+        {/* Personal Info */}
+        <Row className="gy-3">
+          <Col md={6}>
+            <h6 className="fw-bold text-secondary mb-2">
+              Personal Information
+            </h6>
             <p>
-              <strong>Employee ID:</strong>{" "}
-              {employee.employee_id || employeeId || "N/A"}
+              <FaUserTie className="me-2 text-primary" />{" "}
+              <strong>Employee ID:</strong> {employee.employee_id}
             </p>
             <p>
-              <strong>Phone:</strong> {employee.phone || "N/A"}
+              <FaPhone className="me-2 text-primary" /> <strong>Phone:</strong>{" "}
+              {employee.phone || "N/A"}
             </p>
             <p>
+              <FaEnvelope className="me-2 text-primary" />{" "}
+              <strong>Email:</strong> {employee.email}
+            </p>
+            <p>
+              <FaTransgender className="me-2 text-primary" />{" "}
               <strong>Gender:</strong>{" "}
               {employee.gender
                 ? employee.gender.charAt(0).toUpperCase() +
@@ -89,10 +108,20 @@ const EmployeeDetails = () => {
                 : "N/A"}
             </p>
             <p>
-              <strong>Date of Birth:</strong>{" "}
-              {formatDate(employee.date_of_birth)}
+              <FaCalendarAlt className="me-2 text-primary" />{" "}
+              <strong>DOB:</strong> {formatDate(employee.date_of_birth)}
+            </p>
+          </Col>
+
+          <Col md={6}>
+            <h6 className="fw-bold text-secondary mb-2">Employment Details</h6>
+            <p>
+              <FaBuilding className="me-2 text-primary" />{" "}
+              <strong>Shift:</strong>{" "}
+              {employee.shift_name || employee.shift?.name || "N/A"}
             </p>
             <p>
+              <FaUserTie className="me-2 text-primary" />{" "}
               <strong>Marital Status:</strong>{" "}
               {employee.marital_status
                 ? employee.marital_status.charAt(0).toUpperCase() +
@@ -100,89 +129,47 @@ const EmployeeDetails = () => {
                 : "N/A"}
             </p>
             <p>
+              <FaHeartbeat className="me-2 text-primary" />{" "}
               <strong>Blood Group:</strong> {employee.blood_group || "N/A"}
             </p>
-          </div>
-          <div className="col-md-6">
             <p>
-              <strong>Department:</strong>{" "}
-              {employee.department_name || employee.department?.name || "N/A"}
+              <FaCalendarAlt className="me-2 text-primary" />{" "}
+              <strong>Joining Date:</strong> {formatDate(employee.joining_date)}
             </p>
             <p>
-              <strong>Designation:</strong> {employee.designation_name || "N/A"}
+              <FaCalendarAlt className="me-2 text-primary" />{" "}
+              <strong>Probation End:</strong>{" "}
+              {formatDate(employee.probation_end_date)}
             </p>
-            <p>
-              <strong>Shift:</strong>{" "}
-              {employee.shift_name || employee.shift?.name || "N/A"}
-            </p>
-            {/* <p>
-              <strong>Salary:</strong>{" "}
-              {employee.salary ? `$${employee.salary}` : "N/A"}
-            </p> */}
-          </div>
-        </div>
+          </Col>
+        </Row>
 
         <hr />
 
-        {/* Addresses */}
-        {/* <div className="row mb-3">
-          <div className="col-md-6">
-            <h6 className="fw-bold">Current Address:</h6>
-            <p>{employee.present_address || "N/A"}</p>
-          </div>
-          <div className="col-md-6">
-            <h6 className="fw-bold">Permanent Address:</h6>
-            <p>{employee.permanent_address || "N/A"}</p>
-          </div>
-        </div> */}
-
         {/* Emergency Contact */}
-        <div className="mb-3">
-          <h6 className="fw-bold">Emergency Contact:</h6>
-          <p>
-            <strong>Name:</strong> {employee.emergency_contact_name || "N/A"}
-          </p>
-          <p>
-            <strong>Number:</strong> {employee.emergency_contact || "N/A"}
-          </p>
-        </div>
+        <Row>
+          <Col md={6}>
+            <h6 className="fw-bold text-secondary mb-2">Emergency Contact</h6>
+            <p>
+              <FaUserFriends className="me-2 text-danger" />{" "}
+              <strong>Name:</strong> {employee.emergency_contact_name || "N/A"}
+            </p>
+            <p>
+              <FaPhone className="me-2 text-danger" /> <strong>Number:</strong>{" "}
+              {employee.emergency_contact || "N/A"}
+            </p>
+          </Col>
 
-        {/* Family Info */}
-        <div className="mb-3">
-          <h6 className="fw-bold">Family Information:</h6>
-          <p>
-            <strong>Father's Name:</strong> {employee.father_name || "N/A"}
-          </p>
-          <p>
-            <strong>Mother's Name:</strong> {employee.mother_name || "N/A"}
-          </p>
-        </div>
-
-        {/* Employment Dates */}
-        <div className="mb-3">
-          <h6 className="fw-bold">Employment Dates:</h6>
-          <p>
-            <strong>Joining Date:</strong> {formatDate(employee.joining_date)}
-          </p>
-          <p>
-            <strong>Probation End Date:</strong>{" "}
-            {formatDate(employee.probation_end_date)}
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        {/* <div className="text-center mt-4">
-          <Button
-            variant="secondary"
-            onClick={() => navigate(-1)}
-            className="me-3"
-          >
-            Go Back
-          </Button>
-          <Button variant="info" onClick={() => window.print()}>
-            Print Details
-          </Button>
-        </div> */}
+          <Col md={6}>
+            <h6 className="fw-bold text-secondary mb-2">Family Details</h6>
+            <p>
+              <strong>Father:</strong> {employee.father_name || "N/A"}
+            </p>
+            <p>
+              <strong>Mother:</strong> {employee.mother_name || "N/A"}
+            </p>
+          </Col>
+        </Row>
       </Card>
     </div>
   );

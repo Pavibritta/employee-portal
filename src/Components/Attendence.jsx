@@ -6,8 +6,10 @@ import { SlCalender } from "react-icons/sl";
 import axios from "axios";
 import "./Attendence.css";
 import { BASE_URL } from "./Api";
-
+import { useUser } from "./Contexts/UserContext";
+import { useEmployeeData } from "./Contexts/EmployeeDataContext";
 const Attendence = () => {
+  const { user } = useUser();
   const [showModal, setShowModal] = useState(false);
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
@@ -15,9 +17,12 @@ const Attendence = () => {
   const [visibleCount, setVisibleCount] = useState(3); // Show only 3 initially
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const { employeeData } = useEmployeeData();
+  console.log("employeedata", employeeData);
 
   const employeeId = localStorage.getItem("userId");
   const authToken = localStorage.getItem("authToken");
+  const token = localStorage.getItem("");
   const limit = 10;
 
   const getMonthName = (m) =>
@@ -33,39 +38,56 @@ const Attendence = () => {
 
   // Fetch data
   useEffect(() => {
-    if (!employeeId || !authToken) {
-      console.error("Missing employeeId or authToken.");
-      return;
-    }
+    if (!user || !user.role) return;
 
     const fetchAttendance = async () => {
       try {
-        const res = await axios.get(
-          `${BASE_URL}/attendance?user_id=${employeeId}&month=${month}&year=${year}&page=${page}&limit=${limit}`,
-          {
-            headers: { Authorization: `Bearer ${authToken}` },
-          }
-        );
-        console.log(res);
-        const newData = res.data.attendances || [];
+        let id;
 
-        if (newData.length < limit) setHasMore(false);
+        if (user.role === "admin") {
+          id = employeeData?.user_id || localStorage.getItem("userId");
+        } else {
+          id = localStorage.getItem("userId");
+        }
 
-        setAttendanceData((prev) => {
-          const existingDates = new Set(prev.map((entry) => entry.date));
-          const filtered = newData.filter(
-            (entry) => !existingDates.has(entry.date)
-          );
-          return [...prev, ...filtered];
+        if (!id) {
+          console.warn("⚠️ No user_id available yet, waiting...");
+          return;
+        }
+
+        const token = localStorage.getItem("authToken");
+
+        if (!token) {
+          console.error("❌ No auth token found in localStorage!");
+          return;
+        }
+
+        const endpoint =
+          user.role === "admin"
+            ? `${BASE_URL}/attendanceuserid?user_id=${id}&month=${month}&year=${year}`
+            : `${BASE_URL}/attendance?user_id=${id}&month=${month}&year=${year}`;
+
+        const res = await axios.get(endpoint, {
+          headers: {
+            Authorization: `Bearer ${token}`, // ✅ include token
+          },
         });
+
+        console.log("✅ Attendance fetched:", res.data);
+
+        const newData = res.data.attendances || [];
+        if (newData.length < limit) setHasMore(false);
+        setAttendanceData(newData);
       } catch (err) {
-        console.error("Error fetching attendance:", err);
+        console.error("❌ Error fetching attendance:", err);
         setHasMore(false);
       }
     };
 
-    fetchAttendance();
-  }, [page, month, year]);
+    // 🕒 Add slight delay to ensure context is ready
+    const delayFetch = setTimeout(fetchAttendance, 300);
+    return () => clearTimeout(delayFetch);
+  }, [page, month, year, user, employeeData]);
 
   const loadMore = () => {
     if (visibleCount < attendanceData.length) {
@@ -81,24 +103,37 @@ const Attendence = () => {
     setVisibleCount(3);
   };
 
+  // 🕒 Utility to convert UTC time string to IST (HH:mm:ss)
+  // format "15:01:52" → "03:01:52 PM"
+  const formatTo12Hour = (time) => {
+    if (!time) return "-";
+    const [hour, minute, second] = time.split(":");
+    let h = parseInt(hour, 10);
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12; // convert 0 → 12
+    return `${String(h).padStart(2, "0")}:${minute}:${second} ${ampm}`;
+  };
+
   return (
     <div style={{ background: "#E3EDF9" }}>
-      <Navbar />
+      {user.role === "employee" && <Navbar />}
 
-      <div className="container-fluid p-4 attendence-container mt-5 p-2">
+      <div className="container-fluid p-4 attendence-container p-2">
         {/* Breadcrumb */}
-        <div className="container mb-3">
-          <nav aria-label="breadcrumb">
-            <ol className="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
-              <li className="breadcrumb-item">
-                <Link to="/Userdashboard">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Attendance
-              </li>
-            </ol>
-          </nav>
-        </div>
+        {user.role === "employee" && (
+          <div className="container mb-3">
+            <nav aria-label="breadcrumb">
+              <ol className="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+                <li className="breadcrumb-item">
+                  <Link to="/Userdashboard">Dashboard</Link>
+                </li>
+                <li className="breadcrumb-item active" aria-current="page">
+                  Attendance
+                </li>
+              </ol>
+            </nav>
+          </div>
+        )}
 
         {/* Header */}
         <div className="container mb-3 bg-white p-2">
@@ -131,11 +166,15 @@ const Attendence = () => {
                   <div className="d-flex justify-content-evenly text-muted small gap-5 mt-3">
                     <div>
                       <div>Check-In</div>
-                      <div className="text-primary">{entry.check_in}</div>
+                      <div className="text-primary">
+                        {formatTo12Hour(entry.check_in)}
+                      </div>
                     </div>
                     <div>
                       <div>Check-Out</div>
-                      <div className="text-success">{entry.check_out}</div>
+                      <div className="text-success">
+                        {formatTo12Hour(entry.check_out)}
+                      </div>
                     </div>
                     <div>
                       <div>Work Hrs</div>

@@ -7,7 +7,7 @@ import { BASE_URL } from "../Api";
 import axios from "axios";
 
 const Address = () => {
-  const { role } = useUser();
+  const { user } = useUser();
   const { employeeData } = useEmployeeData();
 
   const token = localStorage.getItem("authToken");
@@ -32,7 +32,7 @@ const Address = () => {
   // ✅ Fetch addresses
   const fetchAddresses = async () => {
     try {
-      const targetUserId = role === "employee" ? userId : employeeData?.user_id;
+      const targetUserId = user.role === "employee" ? userId : employeeData?.user_id;
 
       const response = await axios.get(
         `${BASE_URL}/employee-addresses/user/${targetUserId}`,
@@ -69,7 +69,7 @@ const Address = () => {
       } else {
         // Add new address
         const payload = {
-          user_id: role === "employee" ? userId : employeeData?.user_id,
+          user_id: user.role === "employee" ? userId : employeeData?.user_id,
           ...address,
         };
 

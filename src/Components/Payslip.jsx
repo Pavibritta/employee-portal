@@ -5,6 +5,7 @@ import Navbar from "./Navbar";
 import PayslipTemplate from "./Paysliptemplate";
 import html2pdf from "html2pdf.js";
 import { createRoot } from "react-dom/client";
+import { useEmployeeData } from "./Contexts/EmployeeDataContext";
 // ✅ React 18 import
 
 import axios from "axios";
@@ -15,6 +16,8 @@ const Payslip = () => {
   const [slips, setSlips] = useState([]);
   const slipRefs = useRef([]);
   const [visibleSlipIndex, setVisibleSlipIndex] = useState(null);
+  const { employeeData } = useEmployeeData();
+  console.log("employeeData", employeeData);
 
   const [selectedMonthYear, setSelectedMonthYear] = useState(() => {
     const today = new Date();
@@ -32,7 +35,7 @@ const Payslip = () => {
     const [year, month] = monthYear.split("-");
     try {
       const res = await axios.get(
-        `${BASE_URL}/salary/payslip/generate/${userId}/${year}/${month}`,
+        `${BASE_URL}/salary/payslip/generate/${employeeData.id}/${year}/${month}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,

@@ -15,7 +15,7 @@ import {
   Image,
 } from "react-bootstrap";
 import { FaEdit, FaRegFileAlt } from "react-icons/fa";
-import dpimg from ".././images/profileimg1.jpg";
+import dpimg from "../images/dpimg.jpg";
 import axios from "axios";
 import Swal from "sweetalert2";
 import "./Salarymanagement.css";
@@ -34,7 +34,7 @@ const Salarymanagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState("July 2025");
+
   const [showModal, setShowModal] = useState(false);
   console.log(searchTerm);
   const [formData, setFormData] = useState({
@@ -49,68 +49,101 @@ const Salarymanagement = () => {
     status: "Unpaid",
   });
 
-  const months = [
-    "January 2025",
-    "February 2025",
-    "March 2025",
-    "April 2025",
-    "May 2025",
-    "June 2025",
-    "July 2025",
-    "August 2025",
-    "September 2025",
-    "October 2025",
-    "November 2025",
-    "December 2025",
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
-  const fetchPayroll = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem("token");
+  // 🗓️ Automatically set to last month
+  const currentDate = new Date();
+  currentDate.setMonth(currentDate.getMonth() - 1); // Go to previous month
+  const defaultMonth = `${
+    monthNames[currentDate.getMonth()]
+  } ${currentDate.getFullYear()}`;
 
-      const [monthName, yearStr] = selectedMonth.split(" ");
-      const year = parseInt(yearStr, 10);
-      const month = months.findIndex((m) => m === selectedMonth) + 1;
-
-      const res = await axios.get(
-        `${BASE_URL}/salary-payslips?year=${year}&month=${month}`,
-        {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log(res.data);
-
-      const mappedData = (res.data.data || []).map((item) => ({
-        id: item.employee_pk_id,
-        name: item.employee_name,
-        salary: item.basic_salary,
-        net_salary: item.net_salary,
-        status: "Unpaid", // ✅ default
-        department: item.department,
-        ...item,
-      }));
-
-      setSalaryData(mappedData);
-      if (mappedData.length === 0) {
-        setSelectedEmployee(null);
-      }
-      console.log("mappedData", mappedData);
-    } catch (err) {
-      console.error("Error fetching payroll:", err);
-      setError("Failed to load payroll data. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedMonth]);
+  const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
 
   useEffect(() => {
-    fetchPayroll();
-  }, [fetchPayroll]);
+    const fetchPayroll = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const token = localStorage.getItem("token");
+
+        // ✅ Handle both "August 2025", "August", or "08"
+        const currentYear = new Date().getFullYear();
+        let year = currentYear;
+        let month;
+
+        if (selectedMonth.includes(" ")) {
+          const [monthName, yearStr] = selectedMonth.split(" ");
+          year = parseInt(yearStr || currentYear, 10);
+          const monthIndex = monthNames.findIndex((m) => m === monthName) + 1;
+          month = monthIndex.toString().padStart(2, "0");
+        } else if (isNaN(selectedMonth)) {
+          // case: "August"
+          const monthIndex =
+            monthNames.findIndex((m) => m === selectedMonth) + 1;
+          month = monthIndex.toString().padStart(2, "0");
+        } else {
+          // case: "08"
+          month = selectedMonth.toString().padStart(2, "0");
+        }
+
+        console.log(
+          "Fetching payroll:",
+          `${BASE_URL}/salary-payslips?year=${year}&month=${month}`
+        );
+
+        const res = await axios.get(
+          `${BASE_URL}/salary-payslips?year=${year}&month=${month}`,
+          {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("API response:", res.data);
+
+        const rawData = res.data.data || [];
+        const mappedData = rawData.map((item) => ({
+          id: item.employee_pk_id,
+          name: item.employee_name,
+          salary: item.basic_salary,
+          net_salary: item.net_salary,
+          status: "Unpaid",
+          department: item.department,
+          ...item,
+        }));
+
+        setSalaryData(mappedData);
+        if (mappedData.length === 0) setSelectedEmployee(null);
+
+        console.log("mappedData", mappedData);
+      } catch (err) {
+        console.error("Error fetching payroll:", err);
+        setError("Failed to load payroll data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (selectedMonth) {
+      fetchPayroll();
+    }
+  }, [selectedMonth]);
 
   const handleEmployeeSelect = (employee) => {
     setSelectedEmployee(employee);
@@ -252,9 +285,7 @@ const Salarymanagement = () => {
                 <td>
                   {emp.employee.first_name} {emp.employee.last_name}
                 </td>
-                <td>
-                  ₹{emp.salary_structure.basic_salary.toLocaleString() || "N/A"}
-                </td>
+                <td>₹{emp.net_salary.toLocaleString() || "N/A"}</td>
                 <td>
                   <Badge
                     bg={
@@ -388,8 +419,7 @@ const Salarymanagement = () => {
         </div>
 
         <p>
-          <strong>Basic Salary:</strong> ₹
-          {employee.salary_structure.basic_salary || "0.00"}
+          <strong> Salary:</strong> ₹{employee.net_salary || "0.00"}
         </p>
         <p>
           <strong>HRA:</strong> ₹{employee.hra || "0.00"}
@@ -428,7 +458,7 @@ const Salarymanagement = () => {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [pdfPreviewUrl, setPdfPreviewUrl] = useState(null);
     const [showPdfPreview, setShowPdfPreview] = useState(false);
-const today = new Date();
+    const today = new Date();
     const defaultMonthYear = `${today.getFullYear()}-${String(
       today.getMonth() + 1
     ).padStart(2, "0")}`;
@@ -502,13 +532,11 @@ const today = new Date();
       setGridLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const monthIndex = months.indexOf(selectedMonth) + 1;
-
-        // Build payload for backend
+        const [year, month] = selectedMonthYear.split("-");
         const payload = {
-          employee_ids: selectedIds.map((id) => parseInt(id, 10)), // 🔹 these are employee_pk_id
-          year: parseInt(selectedYear, 10),
-          month: monthIndex,
+          employee_ids: selectedIds.map((id) => parseInt(id, 10)),
+          year: parseInt(year, 10),
+          month: parseInt(month, 10), // <-- use numeric month directly from input
           payment_date: new Date().toISOString().split("T")[0],
           payment_mode: "Bank Transfer",
           transaction_ref: `TRX${Date.now()}`,
@@ -529,10 +557,21 @@ const today = new Date();
         );
       } catch (error) {
         console.error("Error generating slips:", error);
-        if (error.response?.data?.message) {
-          Swal.fire("Error", error.response.data.message, "error");
+        if (error.response?.data) {
+          const { message, results } = error.response.data;
+
+          if (results?.failed?.length) {
+            const firstFail = results.failed[0];
+            Swal.fire(
+              "Payslip Generation Failed",
+              `${message}. Employee ID: ${firstFail.employee_id}. Reason: ${firstFail.error}`,
+              "error"
+            );
+          } else {
+            Swal.fire("Error", message || "Unknown server error", "error");
+          }
         } else {
-          Swal.fire("Error", "Please create salary structure", "error");
+          Swal.fire("Error", "Network or unexpected error", "error");
         }
       } finally {
         setGridLoading(false);
@@ -554,7 +593,7 @@ const today = new Date();
         const pdf = new jsPDF("p", "pt", "a4");
         const emp = employees.find((e) => e.id === empId);
         const slip = res.data;
-        console.log("res", res.data);
+        console.log("slip", res.data);
         const tempDiv = document.createElement("div");
         tempDiv.style.width = "595px";
         tempDiv.style.padding = "20px";
@@ -579,22 +618,28 @@ const today = new Date();
           <div class="col-md-6"><strong>Designation:</strong> ${
             slip?.employee.designation || "-"
           }</div>
+          <div class="col-md-6"><strong>Gross Salary:</strong> ${
+            slip?.salary_structure.basic_salary || "-"
+          }</div>
           <div class="col-md-6"><strong>Month:</strong> ${month} ${year}</div>
         </div>
         <hr />
         <div class="row">
-          <div class="col-md-3"><strong>Total Days in month:</strong> ${
+          <div class="col-md-6"><strong>Total Days in month:</strong> ${
             slip?.period?.total_days_in_month || 31
           }</div>
-          <div class="col-md-3"><strong>Paid Days:</strong> ${
-            slip?.attendance_summary?.present_days || 0
+          <div class="col-md-6"><strong>Paid Days:</strong> ${
+            slip?.attendance_summary?.total_present_days || 0
           }</div>
-          <div class="col-md-3"><strong>LOP Days:</strong> ${
+          </div>
+          <div class="row">
+          <div class="col-md-6"><strong>LOP Days:</strong> ${
             slip?.attendance_summary?.absent_days || 0
           }</div>
-          <div class="col-md-3"><strong>Paid leave Days:</strong> ${
-            (slip?.attendance_summary?.paid_casual_leave_days || 0) +
-            (slip?.attendance_summary?.paid_sick_leave_days || 0)
+          <div class="col-md-6"><strong>Paid leave Days:</strong> ${
+            slip?.attendance_summary?.paid_casual_leave_days ||
+            0 + slip?.attendance_summary?.paid_sick_leave_days ||
+            0
           }</div>
         </div>
         <hr/>
@@ -606,9 +651,7 @@ const today = new Date();
       </thead>
       <tbody>
         <tr>
-          <td>Basic Salary: ₹${Math.round(
-            slip?.salary_structure.basic_salary || 0
-          )}</td>
+          <td>Basic Salary: ₹${Math.round(slip?.payslip.basic_salary || 0)}</td>
           <td>Professional Tax: ₹${Math.round(
             slip?.payslip?.professional_tax || 0
           )}</td>
@@ -710,7 +753,15 @@ const today = new Date();
         setPdfPreviewUrl(null);
       }
     };
-    
+    const todayDate = new Date();
+    // 👇 set max to *last month*, so current & future months are disabled
+    const maxSelectableMonth = new Date(
+      today.getFullYear(),
+      todayDate.getMonth() - 1
+    );
+    const maxMonthYear = `${maxSelectableMonth.getFullYear()}-${String(
+      maxSelectableMonth.getMonth() + 1
+    ).padStart(2, "0")}`;
 
     return (
       <div className="p-3 bg-white rounded shadow-sm">
@@ -722,8 +773,21 @@ const today = new Date();
               type="month"
               className="form-control form-control-sm"
               style={{ maxWidth: "150px" }}
-              value={selectedMonthYear} // e.g., "2025-09"
-              onChange={(e) => setSelectedMonthYear(e.target.value)}
+              value={selectedMonthYear}
+              max={maxMonthYear} // 👈 disables current & future months
+              onChange={(e) => {
+                const picked = e.target.value; // e.g., "2025-08"
+                if (picked <= maxMonthYear) {
+                  // extra safety
+                  setSelectedMonthYear(picked);
+                } else {
+                  Swal.fire(
+                    "Invalid Selection",
+                    "You can only select past months.",
+                    "warning"
+                  );
+                }
+              }}
             />
 
             {/* <Form.Control
@@ -857,7 +921,70 @@ const today = new Date();
       </div>
     );
   };
+  const SalaryStructureTable = () => {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+      const fetchSalaryStructures = async () => {
+        try {
+          const response = await axios.get(`${BASE_URL}/salary-structures`);
+          setData(response.data.data || []); // adjust depending on API structure
+        } catch (error) {
+          console.error("Error fetching salary structures:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchSalaryStructures();
+    }, []);
+    if (loading) {
+      return (
+        <div className="text-center py-5">
+          <Spinner animation="border" variant="primary" />
+          <p className="mt-2">Loading salary structures...</p>
+        </div>
+      );
+    }
+    return (
+      <div>
+        <h5 className="mb-3">Salary Structure</h5>
+        <Table striped bordered hover responsive>
+          <thead>
+            <tr>
+              <th>S.NO</th>
+              <th>Emp ID</th>
+              <th>Employee Name</th>
+              <th>Basic Salary</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="text-center">
+                  No salary structures found.
+                </td>
+              </tr>
+            ) : (
+              data.map((item, index) => (
+                <tr key={item.id || index}>
+                  <td>{index + 1}</td>
+                  <td>{item.employee ? item.employee.employee_id : "N/A"}</td>
+                  <td>
+                    {item.employee
+                      ? `${item.employee.first_name} ${item.employee.last_name}`
+                      : "Unknown Employee"}
+                  </td>
+                  <td>{item.basic_salary}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </Table>
+      </div>
+    );
+  };
   return (
     <div className="p-4 bg-white rounded shadow-sm min-vh-100 mt-3 mx-sm-3">
       <div className="d-flex gap-2 align-items-center mb-2 justify-content-end"></div>
@@ -892,7 +1019,7 @@ const today = new Date();
                   {selectedMonth}
                 </Dropdown.Toggle>
                 <Dropdown.Menu>
-                  {months.map((month) => (
+                  {monthNames.map((month) => (
                     <Dropdown.Item key={month} eventKey={month}>
                       {month}
                     </Dropdown.Item>
@@ -936,6 +1063,12 @@ const today = new Date();
         </Tab>
         <Tab eventKey="slip" title="Employee Salary Slip">
           <EmployeeSlipGrid />
+        </Tab>
+        <Tab eventKey="structure" title="Salary Structure">
+          <div className="p-3">
+            {/* You can create a new component or table to show salary structure */}
+            <SalaryStructureTable />
+          </div>
         </Tab>
       </Tabs>
     </div>

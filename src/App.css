@@ -2,3 +2,14 @@ body {
   margin: 0;
   background-color: #e3edf9;
 }
+.desc-cell {
+  max-width: 50px;       /* adjust as needed */
+  white-space: wrap;    /* keep text in one line */
+  overflow: auto;       /* enable horizontal scroll if text overflows */
+     /* hide vertical scrollbar */
+}
+
+/* optional: show a scrollbar only when needed */
+.desc-cell::-webkit-scrollbar {
+  height: 6px;
+}

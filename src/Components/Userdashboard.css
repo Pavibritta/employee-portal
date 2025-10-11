@@ -74,6 +74,20 @@
   height: 100px;
   color: #12375a;
 }
+@media (max-width: 768px) {
+  .top-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  .top-card .col-md-7 {
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  .top-card .col-md-5 button {
+    width: 80%;
+    margin: 0 auto;
+  }
+}
 
 .absent {
   background-color: #a7c3db;

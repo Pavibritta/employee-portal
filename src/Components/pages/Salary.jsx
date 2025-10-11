@@ -9,8 +9,8 @@ const Salary = () => {
   const [salary, setSalary] = useState({
     id: "",
     employee_id: "",
-    salary_structure_name: "",
-    effective_date: "",
+    salary_structure_name: "Standard Pay", // ✅ default
+    effective_from: new Date().toISOString().split("T")[0],
     end_date: "",
     effective_from: "",
     effective_to: "",
@@ -37,7 +37,7 @@ const Salary = () => {
     updated_at: "",
   });
 
-  const { role } = useUser();
+  const { user } = useUser();
   const { mode, selectedEmployeeId, employeeData } = useEmployeeData();
   const token = localStorage.getItem("authToken");
   const admintoken = localStorage.getItem("token");
@@ -53,8 +53,9 @@ const Salary = () => {
 
     const payload = {
       employee_id: employeeData?.id || salary.employee_id,
-      salary_structure_name: salary.salary_structure_name,
-      effective_from: salary.effective_from,
+      salary_structure_name: salary.salary_structure_name || "Standard Pay", // fallback
+      effective_from:
+        salary.effective_from || new Date().toISOString().split("T")[0],
       effective_to: salary.effective_to || null,
       basic_salary: parseFloat(salary.basic_salary) || 0,
       hra: parseFloat(salary.hra) || 0,
@@ -164,7 +165,7 @@ const Salary = () => {
         let targetId = null;
         let tokenToUse = null;
 
-        if (role === "admin") {
+        if (user.role === "admin") {
           // ✅ Admin mode
           targetId = employeeData?.id;
           tokenToUse = localStorage.getItem("token"); // admin token
@@ -211,7 +212,7 @@ const Salary = () => {
     };
 
     fetchSalary();
-  }, [employeeData?.id, role]);
+  }, [employeeData?.id, user]);
 
   useEffect(() => {
     const earningsFields = [
@@ -278,7 +279,7 @@ const Salary = () => {
     salary.other_deductions,
   ]);
 
-  const isEmployee = role === "employee";
+  const isEmployee = user.role === "employee";
   return (
     <div className="container mt-1 mb-5">
       {isEmployee ? (
